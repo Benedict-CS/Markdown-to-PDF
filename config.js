@@ -11,7 +11,7 @@ module.exports = {
     enable_auto_page_break: true,
 
     // Choose which heading levels trigger a new page.
-    break_before_h1: true,
+    break_before_h1: false,
     break_before_h2: true,
     break_before_h3: false,
 
@@ -30,13 +30,13 @@ module.exports = {
   header_footer: {
     // -- Header Settings (Top of each page) --
     // If true, shows title and author at the top left/right
-    show_header: false,
+    show_header: true,
     header_title: "Document Title",
     header_author: "Author Name",
 
     // -- Footer Settings (Bottom of each page) --
     // If true, shows the copyright text at the bottom left
-    show_copyright: true,
+    show_copyright: false,
     copyright_text: "© 2026 All Rights Reserved",
 
     // If true, shows page numbers at the bottom right
@@ -44,7 +44,7 @@ module.exports = {
 
     // Page number style: 
     // 'page_of' (Page 1 of 5) | 'slash' (1 / 5) | 'simple' (1)
-    page_number_format: "page_of"
+    page_number_format: "slash"
   },
 
   appearance: {
