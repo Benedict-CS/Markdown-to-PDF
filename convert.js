@@ -4,8 +4,6 @@ const fs = require('fs');
 
 /**
  * Converts a markdown file to PDF with pre-defined styling and user configuration.
- * @param {string} inputFile - Path to the markdown file.
- * @returns {Promise<Object|null>} - The PDF object or null on failure.
  */
 async function convert(inputFile) {
     if (!inputFile) {
@@ -24,12 +22,15 @@ async function convert(inputFile) {
     const customCssPath = path.resolve(__dirname, 'custom.css');
     const configPath = path.resolve(__dirname, 'config.json');
 
-    // Default configuration
+    // Default configuration (Flattened and restructured for logic)
     let config = { 
-        pdf_options: { 
+        pagination: { 
+            display_header_footer: true,
+            display_document_header: false,
+            display_footer_left: true,
+            auto_page_break_level: 2, // 1 for h1, 2 for h2, 3 for h3, 0 to disable
             format: 'A4', 
-            margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' },
-            displayHeaderFooter: true 
+            margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' }
         },
         metadata: { title: 'Document', author: '', footer_left: '' },
         appearance: { 
@@ -39,23 +40,17 @@ async function convert(inputFile) {
             line_height: '1.5',
             h1_border_color: '#333333'
         },
-        features: { 
-            auto_page_break_h2: true, 
-            use_custom_css: true,
-            display_document_header: false,
-            display_footer_left: true
-        }
+        features: { use_custom_css: true }
     };
 
     // Load and deeply merge user configuration
     if (fs.existsSync(configPath)) {
         try {
             const userConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-            
-            if (userConfig.pdf_options) {
-                config.pdf_options = { ...config.pdf_options, ...userConfig.pdf_options };
-                if (userConfig.pdf_options.margin) {
-                    config.pdf_options.margin = { ...config.pdf_options.margin, ...userConfig.pdf_options.margin };
+            if (userConfig.pagination) {
+                config.pagination = { ...config.pagination, ...userConfig.pagination };
+                if (userConfig.pagination.margin) {
+                    config.pagination.margin = { ...config.pagination.margin, ...userConfig.pagination.margin };
                 }
             }
             if (userConfig.metadata) config.metadata = { ...config.metadata, ...userConfig.metadata };
@@ -70,6 +65,14 @@ async function convert(inputFile) {
     let baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
     let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
 
+    // Logic to determine which header level triggers a page break
+    const level = config.pagination.auto_page_break_level;
+    const breakRules = `
+        h1 { page-break-before: ${level === 1 ? 'always' : 'auto'}; }
+        h2 { page-break-before: ${level === 2 ? 'always' : 'auto'}; }
+        h3 { page-break-before: ${level === 3 ? 'always' : 'auto'}; }
+    `;
+
     // Inject Dynamic Appearance into CSS
     const themeStyles = `
         :root {
@@ -78,14 +81,14 @@ async function convert(inputFile) {
             --base-font-size: ${config.appearance.base_font_size};
             --line-height: ${config.appearance.line_height};
             --h1-border: 2px solid ${config.appearance.h1_border_color};
-            --h2-page-break: ${config.features.auto_page_break_h2 ? 'always' : 'auto'};
         }
+        ${breakRules}
     `;
     
     const finalCss = themeStyles + '\n' + baseCss + '\n' + customCss;
 
     // Header Template
-    const headerTemplate = config.features.display_document_header ? `
+    const headerTemplate = config.pagination.display_document_header ? `
         <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa;">
             <span>${config.metadata.title}</span>
             <span>${config.metadata.author}</span>
@@ -93,10 +96,9 @@ async function convert(inputFile) {
     ` : '<span></span>';
 
     // Footer Template
-    // Left side (footer_left) visibility is now controlled by config.features.display_footer_left
-    const footerTemplate = config.pdf_options.displayHeaderFooter ? `
+    const footerTemplate = config.pagination.display_header_footer ? `
         <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888;">
-            <span>${config.features.display_footer_left ? config.metadata.footer_left : ''}</span>
+            <span>${config.pagination.display_footer_left ? config.metadata.footer_left : ''}</span>
             <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
         </div>
     ` : '<span></span>';
@@ -107,7 +109,9 @@ async function convert(inputFile) {
             css: finalCss,
             stylesheet: [], 
             pdf_options: {
-                ...config.pdf_options,
+                format: config.pagination.format,
+                margin: config.pagination.margin,
+                displayHeaderFooter: config.pagination.display_header_footer,
                 headerTemplate: headerTemplate,
                 footerTemplate: footerTemplate,
                 waitUntil: 'networkidle0',

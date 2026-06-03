@@ -1,13 +1,16 @@
 {
-  "pdf_options": {
+  "pagination": {
+    "display_header_footer": true,
+    "display_document_header": false,
+    "display_footer_left": true,
+    "auto_page_break_level": 2,
     "format": "A4",
     "margin": {
       "top": "12mm",
       "right": "15mm",
       "bottom": "15mm",
       "left": "15mm"
-    },
-    "displayHeaderFooter": true
+    }
   },
   "metadata": {
     "title": "Elegant MD-to-PDF",
@@ -22,9 +25,6 @@
     "h1_border_color": "#333333"
   },
   "features": {
-    "auto_page_break_h2": true,
-    "use_custom_css": true,
-    "display_document_header": false,
-    "display_footer_left": true
+    "use_custom_css": true
   }
 }
