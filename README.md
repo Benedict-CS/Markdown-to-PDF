@@ -12,7 +12,7 @@ A professional Markdown to PDF converter with a focus on clean typography, preci
 
 ## 📄 Sample Output
 
-Check out the [example.pdf](samples/example.pdf) to see the professional layout and pagination in action.
+Check out the [example.pdf](example.pdf) to see the professional layout and pagination in action.
 
 ## 🛠️ Installation
 

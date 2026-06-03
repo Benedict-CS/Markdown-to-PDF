@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { convert } = require('./convert');
 
-const targetFile = process.argv[2] || 'job.md';
+const targetFile = process.argv[2] || 'example.md';
 const filePath = path.resolve(__dirname, targetFile);
 
 if (!fs.existsSync(filePath)) {
