@@ -28,11 +28,22 @@ async function convert(inputFile) {
             dest: outputPath,
             css: css,
             stylesheet: [], // Disable default stylesheets
+            
+            /* ============================================================
+               PDF Generation Options
+               Customize your PDF output here (Margins, Page Numbers, etc.)
+               Reference: https://pptr.dev/api/puppeteer.pdfoptions
+               ============================================================ */
             pdf_options: {
                 format: 'A4',
+                // Adjust margins here. Decrease for more content per page.
                 margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' },
+                
+                // Set to false to hide headers and page numbers
                 displayHeaderFooter: true,
                 headerTemplate: '<span></span>',
+                
+                // Customize page number styling or remove to hide
                 footerTemplate: `
                     <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; text-align: center; color: #888;">
                         Page <span class="pageNumber"></span> of <span class="totalPages"></span>
