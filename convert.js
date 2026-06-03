@@ -20,9 +20,9 @@ async function convert(inputFile) {
     const outputPath = inputPath.replace(/\.md$/, '.pdf');
     const cssPath = path.resolve(__dirname, 'style.css');
     const customCssPath = path.resolve(__dirname, 'custom.css');
-    const configPath = path.resolve(__dirname, 'config.json');
+    const configJsPath = path.resolve(__dirname, 'config.js');
 
-    // Default configuration
+    // 1. Default configuration
     let config = { 
         pagination: { 
             enable_auto_page_break: true,
@@ -31,26 +31,27 @@ async function convert(inputFile) {
             margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' }
         },
         header_footer: {
-            show_header: false,
+            copyright_text: '',
             show_copyright: true,
             show_page_numbers: true,
             page_number_format: 'page_of'
         },
-        metadata: { title: 'Document', author: '', copyright_text: '' },
         appearance: { 
             accent_color: '#0366d6', 
             text_color: '#333333', 
             base_font_size: '14px', 
-            line_height: '1.5',
-            h1_border_color: '#333333'
+            line_height: '1.5'
         },
         features: { use_custom_css: true }
     };
 
-    // Load and deeply merge user configuration
-    if (fs.existsSync(configPath)) {
+    // 2. Load user configuration from config.js (supports comments!)
+    if (fs.existsSync(configJsPath)) {
         try {
-            const userConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+            // Delete cache to allow hot-reloading during 'watch'
+            delete require.cache[require.resolve(configJsPath)];
+            const userConfig = require(configJsPath);
+            
             if (userConfig.pagination) {
                 config.pagination = { ...config.pagination, ...userConfig.pagination };
                 if (userConfig.pagination.margin) {
@@ -58,79 +59,58 @@ async function convert(inputFile) {
                 }
             }
             if (userConfig.header_footer) config.header_footer = { ...config.header_footer, ...userConfig.header_footer };
-            if (userConfig.metadata) config.metadata = { ...config.metadata, ...userConfig.metadata };
             if (userConfig.appearance) config.appearance = { ...config.appearance, ...userConfig.appearance };
             if (userConfig.features) config.features = { ...config.features, ...userConfig.features };
         } catch (e) {
-            console.error('❌ Error parsing config.json, using defaults.');
+            console.error('❌ Error loading config.js, using defaults.', e);
         }
     }
 
-    // Load base CSS and custom CSS
+    // 3. CSS Logic
     let baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
     let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
 
-    // Logic for Auto Page Breaks (Inclusive: Level 2 includes H1 and H2)
+    // Precise Page Break Logic
     const isEnabled = config.pagination.enable_auto_page_break;
     const level = config.pagination.auto_page_break_level;
     
+    // We force 'auto' if disabled or level is lower, 'always' if enabled and level matches
     const breakRules = `
         h1 { page-break-before: ${(isEnabled && level >= 1) ? 'always' : 'auto'} !important; }
         h2 { page-break-before: ${(isEnabled && level >= 2) ? 'always' : 'auto'} !important; }
         h3 { page-break-before: ${(isEnabled && level >= 3) ? 'always' : 'auto'} !important; }
     `;
 
-    // Inject Dynamic Appearance into CSS
     const themeStyles = `
         :root {
             --accent-color: ${config.appearance.accent_color};
             --text-color: ${config.appearance.text_color};
             --base-font-size: ${config.appearance.base_font_size};
             --line-height: ${config.appearance.line_height};
-            --h1-border: 2px solid ${config.appearance.h1_border_color};
         }
         ${breakRules}
     `;
     
     const finalCss = baseCss + '\n' + themeStyles + '\n' + customCss;
 
-    // Header Template
-    const headerTemplate = config.header_footer.show_header ? `
-        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa;">
-            <span>${config.metadata.title}</span>
-            <span>${config.metadata.author}</span>
-        </div>
-    ` : '<span></span>';
-
-    // Page Number Formatting Logic
+    // 4. Header/Footer Templates
     let pageNumberHtml = '';
     if (config.header_footer.show_page_numbers) {
         switch (config.header_footer.page_number_format) {
-            case 'slash':
-                pageNumberHtml = '<span class="pageNumber"></span> / <span class="totalPages"></span>';
-                break;
-            case 'simple':
-                pageNumberHtml = '<span class="pageNumber"></span>';
-                break;
-            case 'page_of':
-            default:
-                pageNumberHtml = 'Page <span class="pageNumber"></span> of <span class="totalPages"></span>';
-                break;
+            case 'slash': pageNumberHtml = '<span class="pageNumber"></span> / <span class="totalPages"></span>'; break;
+            case 'simple': pageNumberHtml = '<span class="pageNumber"></span>'; break;
+            default: pageNumberHtml = 'Page <span class="pageNumber"></span> of <span class="totalPages"></span>'; break;
         }
     }
 
-    // Footer Template
     const footerTemplate = `
         <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888;">
-            <span>${config.header_footer.show_copyright ? config.metadata.copyright_text : ''}</span>
+            <span>${config.header_footer.show_copyright ? config.header_footer.copyright_text : ''}</span>
             <span>${pageNumberHtml}</span>
         </div>
     `;
 
-    // Master switch for Puppeteer
-    const enableHeaderFooter = config.header_footer.show_header || 
-                               config.header_footer.show_copyright || 
-                               config.header_footer.show_page_numbers;
+    const enableHeaderFooter = config.header_footer.show_copyright || config.header_footer.show_page_numbers;
 
     try {
         const pdf = await mdToPdf({ path: inputPath }, { 
@@ -141,17 +121,12 @@ async function convert(inputFile) {
                 format: config.pagination.format,
                 margin: config.pagination.margin,
                 displayHeaderFooter: enableHeaderFooter,
-                headerTemplate: headerTemplate,
+                headerTemplate: '<span></span>',
                 footerTemplate: footerTemplate,
                 waitUntil: 'networkidle0',
             },
             launch_options: {
-                args: [
-                    '--no-sandbox', 
-                    '--disable-setuid-sandbox',
-                    '--allow-file-access-from-files',
-                    '--enable-local-file-access'
-                ]
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--allow-file-access-from-files', '--enable-local-file-access']
             }
         });
 
