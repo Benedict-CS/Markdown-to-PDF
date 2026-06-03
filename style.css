@@ -27,7 +27,8 @@ h2 {
     padding-bottom: 0.3em;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    page-break-before: always; /* Force new page for major sections */
+    /* Controlled by config.json */
+    page-break-before: var(--h2-page-break, always); 
 }
 
 h2:first-of-type {

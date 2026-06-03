@@ -47,7 +47,7 @@ You can easily emphasize text using standard markdown:
 
 * **Standard Link**: [Google](https://google.com)
 * **Image**:
-![LXC vs Docker Architecture](https://hackmd.io/_uploads/B1b1_11gGe.png)
+![Professional Workspace](https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&h=300&fit=crop)
 
 ## 6. Code & Preformatted Text
 

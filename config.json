@@ -1,0 +1,15 @@
+{
+  "pdf_options": {
+    "format": "A4",
+    "margin": {
+      "top": "10mm",
+      "right": "15mm",
+      "bottom": "12mm",
+      "left": "15mm"
+    },
+    "displayHeaderFooter": true
+  },
+  "features": {
+    "auto_page_break_h2": true
+  }
+}

@@ -37,14 +37,15 @@ npm run watch <your-file.md>
 
 ## 🎨 Customization
 
-### Styling (CSS)
-Modify `style.css` to adjust fonts, colors, margins, and table appearances.
+### Centralized Configuration (`config.json`)
+You can now control the core features without touching the code. Edit `config.json` to:
+- **Toggle Page Numbers**: Set `"displayHeaderFooter": false`.
+- **Toggle Auto Page Breaks**: Set `"auto_page_break_h2": false` to prevent `##` headings from starting on a new page.
+- **Adjust Margins**: Modify the `"margin"` object (e.g., `"top": "20mm"`).
+- **Change Paper Size**: Change `"format": "A4"` to `"Letter"`.
 
-### PDF Options (Margins, Page Numbers)
-Open `convert.js` to modify the `pdf_options` block. You can:
-- **Toggle Page Numbers**: Set `displayHeaderFooter: false`.
-- **Adjust Margins**: Modify the `margin` object (e.g., `top: '20mm'`).
-- **Change Paper Size**: Change `format: 'A4'` to `'Letter'`, etc.
+### Styling (CSS)
+Modify `style.css` to adjust fonts, colors, and specific element appearances.
 
 ### Advanced Layouts (Side-by-Side Columns)
 Use the `flex-container` and `flex-item` classes to create multi-column layouts:
