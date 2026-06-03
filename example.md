@@ -47,7 +47,7 @@ You can easily emphasize text using standard markdown:
 
 * **Standard Link**: [Google](https://google.com)
 * **Image**:
-![Professional Workspace](https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&h=300&fit=crop)
+![Local Demo Image](./images/Demo.jpg)
 
 ## 6. Code & Preformatted Text
 
