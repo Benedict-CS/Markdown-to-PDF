@@ -10,7 +10,10 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
+  "bin": {
+    "mark-pdf": "convert.js"
+  },
   "type": "commonjs",
   "dependencies": {
     "md-to-pdf": "^5.2.5"

@@ -47,7 +47,9 @@ You can now control the core features without touching the code. Edit `config.js
 ### Styling (CSS)
 Modify `style.css` to adjust fonts, colors, and specific element appearances.
 
-### Advanced Layouts (Side-by-Side Columns)
+### Advanced Layouts
+
+#### Side-by-Side Columns
 Use the `flex-container` and `flex-item` classes to create multi-column layouts:
 
 ```html
@@ -61,6 +63,12 @@ Use the `flex-container` and `flex-item` classes to create multi-column layouts:
     <p>Some content on the right.</p>
   </div>
 </div>
+```
+
+#### Manual Page Breaks
+To force a new page at a specific point, add this tag in your Markdown:
+```html
+<div class="page-break"></div>
 ```
 
 ### Professional Tables

@@ -10,6 +10,6 @@
     "displayHeaderFooter": true
   },
   "features": {
-    "auto_page_break_h2": true
+    "auto_page_break_h2": false
   }
 }
