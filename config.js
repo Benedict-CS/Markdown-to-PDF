@@ -11,7 +11,7 @@ module.exports = {
     enable_auto_page_break: true,
 
     // Choose which heading levels trigger a new page.
-    break_before_h1: false,
+    break_before_h1: true,
     break_before_h2: true,
     break_before_h3: false,
 
@@ -30,13 +30,13 @@ module.exports = {
   header_footer: {
     // -- Header Settings (Top of each page) --
     // If true, shows title and author at the top left/right
-    show_header: true,
+    show_header: false,
     header_title: "Document Title",
     header_author: "Author Name",
 
     // -- Footer Settings (Bottom of each page) --
     // If true, shows the copyright text at the bottom left
-    show_copyright: false,
+    show_copyright: true,
     copyright_text: "© 2026 All Rights Reserved",
 
     // If true, shows page numbers at the bottom right
@@ -44,17 +44,20 @@ module.exports = {
 
     // Page number style: 
     // 'page_of' (Page 1 of 5) | 'slash' (1 / 5) | 'simple' (1)
-    page_number_format: "simple"
+    page_number_format: "page_of"
   },
 
   appearance: {
-    // Main theme color for headers and accents
+    // Main theme color for sub-headers and accents
     accent_color: "#0366d6",
+
+    // Color for the border line under H1 headers
+    h1_border_color: "#333333",
 
     // Base text color for the entire document
     text_color: "#333333",
 
-    // Base font size
+    // Base font size (px, pt, rem, etc.)
     base_font_size: "14px",
 
     // Spacing between lines of text

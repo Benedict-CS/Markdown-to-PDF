@@ -32,7 +32,7 @@ const triggerConversion = async () => {
 fs.watch(__dirname, (eventType, filename) => {
     // 只要是 Markdown, CSS 或 Config 變動，就觸發轉換
     // 注意：現在支持監控 config.js 了
-    const watchedFiles = [targetFile, 'style.css', 'config.json', 'config.js'];
+    const watchedFiles = [targetFile, 'style.css', 'config.js'];
     if (watchedFiles.includes(filename)) {
         if (timeout) clearTimeout(timeout);
         timeout = setTimeout(triggerConversion, 200); 
