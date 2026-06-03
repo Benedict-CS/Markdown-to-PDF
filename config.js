@@ -8,20 +8,21 @@
 module.exports = {
   pagination: {
     // Master switch to enable/disable automatic page breaks
-    enable_auto_page_break: false,
+    enable_auto_page_break: true,
 
-    // Defines which heading levels trigger a page break.
-    // 1: H1 only | 2: H1 & H2 | 3: H1, H2 & H3
-    auto_page_break_level: 2,
+    // Choose which heading levels trigger a new page.
+    break_before_h1: true,
+    break_before_h2: true,
+    break_before_h3: false,
 
     // Standard paper size (e.g., 'A4', 'Letter', 'Legal')
     format: "A4",
 
     // Page margins (can use mm, cm, or in)
     margin: {
-      top: "12mm",
+      top: "10mm",
       right: "15mm",
-      bottom: "15mm",
+      bottom: "12mm",
       left: "15mm"
     }
   },

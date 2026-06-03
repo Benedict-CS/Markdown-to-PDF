@@ -22,11 +22,13 @@ async function convert(inputFile) {
     const customCssPath = path.resolve(__dirname, 'custom.css');
     const configJsPath = path.resolve(__dirname, 'config.js');
 
-    // Default configuration
+    // 1. Default configuration
     let config = { 
         pagination: { 
             enable_auto_page_break: true,
-            auto_page_break_level: 2, 
+            break_before_h1: true,
+            break_before_h2: true,
+            break_before_h3: false,
             format: 'A4', 
             margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' }
         },
@@ -48,7 +50,7 @@ async function convert(inputFile) {
         features: { use_custom_css: true }
     };
 
-    // Load user configuration from config.js
+    // 2. Load user configuration from config.js
     if (fs.existsSync(configJsPath)) {
         try {
             delete require.cache[require.resolve(configJsPath)];
@@ -67,18 +69,17 @@ async function convert(inputFile) {
         }
     }
 
-    // Load base CSS and custom CSS
+    // 3. CSS Logic
     let baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
     let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
 
     const isEnabled = config.pagination.enable_auto_page_break;
-    const level = config.pagination.auto_page_break_level;
     
-    // Precise Page Break Logic with "Smart Header" fix
+    // Independent Page Break Logic
     const breakRules = `
-        h1 { page-break-before: ${(isEnabled && level >= 1) ? 'always' : 'auto'} !important; }
-        h2 { page-break-before: ${(isEnabled && level >= 2) ? 'always' : 'auto'} !important; }
-        h3 { page-break-before: ${(isEnabled && level >= 3) ? 'always' : 'auto'} !important; }
+        h1 { page-break-before: ${(isEnabled && config.pagination.break_before_h1) ? 'always' : 'auto'} !important; }
+        h2 { page-break-before: ${(isEnabled && config.pagination.break_before_h2) ? 'always' : 'auto'} !important; }
+        h3 { page-break-before: ${(isEnabled && config.pagination.break_before_h3) ? 'always' : 'auto'} !important; }
         
         /* SMART FIX: Prevent double page breaks when headers follow each other directly */
         h1 + h2, h1 + h3, h2 + h3 { page-break-before: auto !important; }
@@ -96,7 +97,7 @@ async function convert(inputFile) {
     
     const finalCss = baseCss + '\n' + themeStyles + '\n' + customCss;
 
-    // Header/Footer Templates
+    // 4. Header/Footer Templates
     const headerTemplate = config.header_footer.show_header ? `
         <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa;">
             <span>${config.header_footer.header_title}</span>

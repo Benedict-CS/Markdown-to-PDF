@@ -8,7 +8,7 @@ A professional Markdown to PDF converter with a focus on clean typography, preci
 - **Smart Pagination**: Automatically prevents paragraphs, list items, and tables from breaking across pages.
 - **Clean Tables**: Minimalist data table styling (no more "ugly big boxes").
 - **Live Watch Mode**: Real-time PDF updates as you save your changes.
-- **Customizable**: Easy-to-edit CSS for personalized themes.
+- **Customizable**: Easy-to-edit JavaScript configuration with full comment support.
 
 ## 📄 Sample Output
 
@@ -38,12 +38,14 @@ npm run watch <your-file.md>
 ## 🎨 Customization
 
 ### Centralized Configuration (`config.js`)
-You can control the tool's behavior using **`config.js`**. Unlike JSON, this file supports **English comments**, making it easier to understand each setting.
+You can control the tool's behavior using **`config.js`**. This file supports **English comments**, making it easy to understand each setting.
 
 | Section | Key | Description |
 | :--- | :--- | :--- |
 | **pagination** | `enable_auto_page_break` | Master switch for automatic page breaks. |
-| | `auto_page_break_level` | `1`: H1, `2`: H1 & H2, `3`: H1, H2 & H3. |
+| | `break_before_h1` | If true, starts a new page before `#` headers. |
+| | `break_before_h2` | If true, starts a new page before `##` headers. |
+| | `break_before_h3` | If true, starts a new page before `###` headers. |
 | | `page_number_format` | Choose format (see below). |
 | **header_footer** | `show_header` | Show Title & Author at page top. |
 | | `show_copyright` | Show copyright text at bottom left. |
