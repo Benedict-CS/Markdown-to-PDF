@@ -11,8 +11,8 @@ module.exports = {
     enable_auto_page_break: true,
 
     // Choose which heading levels trigger a new page.
-    break_before_h1: true,
-    break_before_h2: true,
+    break_before_h1: false,
+    break_before_h2: false,
     break_before_h3: false,
 
     // Standard paper size (e.g., 'A4', 'Letter', 'Legal')
@@ -30,9 +30,9 @@ module.exports = {
   header_footer: {
     // -- Header Settings (Top of each page) --
     // If true, shows title and author at the top left/right
-    show_header: false,
-    header_title: "Document Title",
-    header_author: "Author Name",
+    show_header: true,
+    header_title: "How to use markdown",
+    header_author: "Benedict Tiong",
 
     // -- Footer Settings (Bottom of each page) --
     // If true, shows the copyright text at the bottom left
@@ -44,11 +44,11 @@ module.exports = {
 
     // Page number style: 
     // 'page_of' (Page 1 of 5) | 'slash' (1 / 5) | 'simple' (1)
-    page_number_format: "page_of"
+    page_number_format: "simple"
   },
 
   appearance: {
-    // Main theme color for sub-headers and accents
+    // Main theme color for headers and accents
     accent_color: "#0366d6",
 
     // Color for the border line under H1 headers
