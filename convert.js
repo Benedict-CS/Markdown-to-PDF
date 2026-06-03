@@ -31,8 +31,11 @@ async function convert(inputFile) {
             margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' }
         },
         header_footer: {
-            copyright_text: '',
+            show_header: false,
+            header_title: 'Document',
+            header_author: '',
             show_copyright: true,
+            copyright_text: '',
             show_page_numbers: true,
             page_number_format: 'page_of'
         },
@@ -45,10 +48,9 @@ async function convert(inputFile) {
         features: { use_custom_css: true }
     };
 
-    // 2. Load user configuration from config.js (supports comments!)
+    // 2. Load user configuration from config.js
     if (fs.existsSync(configJsPath)) {
         try {
-            // Delete cache to allow hot-reloading during 'watch'
             delete require.cache[require.resolve(configJsPath)];
             const userConfig = require(configJsPath);
             
@@ -70,11 +72,9 @@ async function convert(inputFile) {
     let baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
     let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
 
-    // Precise Page Break Logic
     const isEnabled = config.pagination.enable_auto_page_break;
     const level = config.pagination.auto_page_break_level;
     
-    // We force 'auto' if disabled or level is lower, 'always' if enabled and level matches
     const breakRules = `
         h1 { page-break-before: ${(isEnabled && level >= 1) ? 'always' : 'auto'} !important; }
         h2 { page-break-before: ${(isEnabled && level >= 2) ? 'always' : 'auto'} !important; }
@@ -91,9 +91,17 @@ async function convert(inputFile) {
         ${breakRules}
     `;
     
+    // THEME STYLES MUST BE LAST TO OVERRIDE :root
     const finalCss = baseCss + '\n' + themeStyles + '\n' + customCss;
 
     // 4. Header/Footer Templates
+    const headerTemplate = config.header_footer.show_header ? `
+        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa;">
+            <span>${config.header_footer.header_title}</span>
+            <span>${config.header_footer.header_author}</span>
+        </div>
+    ` : '<span></span>';
+
     let pageNumberHtml = '';
     if (config.header_footer.show_page_numbers) {
         switch (config.header_footer.page_number_format) {
@@ -110,7 +118,8 @@ async function convert(inputFile) {
         </div>
     `;
 
-    const enableHeaderFooter = config.header_footer.show_copyright || config.header_footer.show_page_numbers;
+    // Puppeteer needs displayHeaderFooter: true if ANY of them are used
+    const enableHeaderFooter = config.header_footer.show_header || config.header_footer.show_copyright || config.header_footer.show_page_numbers;
 
     try {
         const pdf = await mdToPdf({ path: inputPath }, { 
@@ -121,7 +130,7 @@ async function convert(inputFile) {
                 format: config.pagination.format,
                 margin: config.pagination.margin,
                 displayHeaderFooter: enableHeaderFooter,
-                headerTemplate: '<span></span>',
+                headerTemplate: headerTemplate,
                 footerTemplate: footerTemplate,
                 waitUntil: 'networkidle0',
             },

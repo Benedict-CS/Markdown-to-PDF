@@ -1,7 +1,7 @@
 {
   "pagination": {
     "enable_auto_page_break": true,
-    "auto_page_break_level": 1,
+    "auto_page_break_level": 3,
     "format": "A4",
     "margin": {
       "top": "12mm",

@@ -15,50 +15,40 @@ module.exports = {
     auto_page_break_level: 2,
 
     // Page format: 'A4', 'Letter', etc.
-    format: 'A4',
+    format: "A4",
 
-    // Page margins in mm or cm
+    // Page margins
     margin: {
-      top: '12mm',
-      right: '15mm',
-      bottom: '15mm',
-      left: '15mm'
+      top: "12mm",
+      right: "15mm",
+      bottom: "15mm",
+      left: "15mm"
     }
   },
 
   header_footer: {
-    // Bottom-left text (e.g., Copyright or Project Name)
+    // -- Header (Top of page) --
+    show_header: false, // Set to true to show Title and Author at the top
+    header_title: "Document Title",
+    header_author: "Author Name",
+
+    // -- Footer (Bottom of page) --
+    show_copyright: true,
     copyright_text: "© 2026 All Rights Reserved",
 
-    // Show copyright text?
-    show_copyright: true,
-
-    // Show page numbers at the bottom right?
     show_page_numbers: true,
-
-    // Format of page numbers:
-    // 'page_of': Page 1 of 5
-    // 'slash': 1 / 5
-    // 'simple': 1
+    // Format: 'page_of' (Page 1 of 5), 'slash' (1 / 5), 'simple' (1)
     page_number_format: "page_of"
   },
 
   appearance: {
-    // The main color used for sub-headers and accents
     accent_color: "#0366d6",
-
-    // Global text color
     text_color: "#333333",
-
-    // Default font size
     base_font_size: "14px",
-
-    // Space between lines
     line_height: "1.5"
   },
 
   features: {
-    // Use an optional 'custom.css' file if it exists in the root folder
     use_custom_css: true
   }
 };
