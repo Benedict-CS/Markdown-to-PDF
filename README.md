@@ -10,6 +10,10 @@ A professional Markdown to PDF converter with a focus on clean typography, preci
 - **Live Watch Mode**: Real-time PDF updates as you save your changes.
 - **Customizable**: Easy-to-edit CSS for personalized themes.
 
+## 📄 Sample Output
+
+Check out the [example.pdf](samples/example.pdf) to see the professional layout and pagination in action.
+
 ## 🛠️ Installation
 
 Ensure you have [Node.js](https://nodejs.org/) installed, then run:
