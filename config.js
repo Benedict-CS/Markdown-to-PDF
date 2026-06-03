@@ -44,7 +44,7 @@ module.exports = {
 
     // Page number style: 
     // 'page_of' (Page 1 of 5) | 'slash' (1 / 5) | 'simple' (1)
-    page_number_format: "simple"
+    page_number_format: "page_of"
   },
 
   appearance: {

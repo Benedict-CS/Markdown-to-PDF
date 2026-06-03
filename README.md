@@ -22,6 +22,14 @@ Ensure you have [Node.js](https://nodejs.org/) installed, then run:
 npm install
 ```
 
+### Global CLI Installation (Optional)
+You can install this tool globally to use it anywhere on your system:
+```bash
+npm install -g .
+# Then use the command:
+mark-pdf <your-file.md>
+```
+
 ## 🚀 Usage
 
 ### 1. Manual Conversion
