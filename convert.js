@@ -22,7 +22,7 @@ async function convert(inputFile) {
     const customCssPath = path.resolve(__dirname, 'custom.css');
     const configJsPath = path.resolve(__dirname, 'config.js');
 
-    // 1. Default configuration
+    // Default configuration
     let config = { 
         pagination: { 
             enable_auto_page_break: true,
@@ -48,12 +48,11 @@ async function convert(inputFile) {
         features: { use_custom_css: true }
     };
 
-    // 2. Load user configuration from config.js
+    // Load user configuration from config.js
     if (fs.existsSync(configJsPath)) {
         try {
             delete require.cache[require.resolve(configJsPath)];
             const userConfig = require(configJsPath);
-            
             if (userConfig.pagination) {
                 config.pagination = { ...config.pagination, ...userConfig.pagination };
                 if (userConfig.pagination.margin) {
@@ -68,17 +67,21 @@ async function convert(inputFile) {
         }
     }
 
-    // 3. CSS Logic
+    // Load base CSS and custom CSS
     let baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
     let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
 
     const isEnabled = config.pagination.enable_auto_page_break;
     const level = config.pagination.auto_page_break_level;
     
+    // Precise Page Break Logic with "Smart Header" fix
     const breakRules = `
         h1 { page-break-before: ${(isEnabled && level >= 1) ? 'always' : 'auto'} !important; }
         h2 { page-break-before: ${(isEnabled && level >= 2) ? 'always' : 'auto'} !important; }
         h3 { page-break-before: ${(isEnabled && level >= 3) ? 'always' : 'auto'} !important; }
+        
+        /* SMART FIX: Prevent double page breaks when headers follow each other directly */
+        h1 + h2, h1 + h3, h2 + h3 { page-break-before: auto !important; }
     `;
 
     const themeStyles = `
@@ -91,10 +94,9 @@ async function convert(inputFile) {
         ${breakRules}
     `;
     
-    // THEME STYLES MUST BE LAST TO OVERRIDE :root
     const finalCss = baseCss + '\n' + themeStyles + '\n' + customCss;
 
-    // 4. Header/Footer Templates
+    // Header/Footer Templates
     const headerTemplate = config.header_footer.show_header ? `
         <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa;">
             <span>${config.header_footer.header_title}</span>
@@ -118,7 +120,6 @@ async function convert(inputFile) {
         </div>
     `;
 
-    // Puppeteer needs displayHeaderFooter: true if ANY of them are used
     const enableHeaderFooter = config.header_footer.show_header || config.header_footer.show_copyright || config.header_footer.show_page_numbers;
 
     try {

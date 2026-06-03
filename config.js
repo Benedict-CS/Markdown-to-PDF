@@ -8,7 +8,7 @@
 module.exports = {
   pagination: {
     // Master switch to enable/disable automatic page breaks
-    enable_auto_page_break: true,
+    enable_auto_page_break: false,
 
     // Defines which heading levels trigger a page break.
     // 1: H1 only | 2: H1 & H2 | 3: H1, H2 & H3
