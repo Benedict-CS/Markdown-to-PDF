@@ -11,18 +11,18 @@
   },
   "metadata": {
     "title": "Professional Document",
-    "author": "Author Name",
+    "author": "Benedict",
     "footer_left": "© 2026 All Rights Reserved"
   },
   "appearance": {
     "accent_color": "#0366d6",
     "text_color": "#333333",
     "base_font_size": "14px",
-    "line_height": "1.5",
+    "line_height": "1.5", 
     "h1_border_color": "#333333"
   },
   "features": {
-    "auto_page_break_h2": true,
-    "use_custom_css": true
+    "auto_page_break_h2": false,
+    "use_custom_css": false
   }
 }

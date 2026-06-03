@@ -58,12 +58,6 @@ async function convert(inputFile) {
         }
     }
 
-    // Load base CSS and handle Custom CSS injection
-    let css = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
-    if (config.features.use_custom_css && fs.existsSync(customCssPath)) {
-        css += '\n' + fs.readFileSync(customCssPath, 'utf8');
-    }
-
     // Inject Dynamic Appearance into CSS
     const themeStyles = `
         :root {
@@ -75,12 +69,17 @@ async function convert(inputFile) {
             --h2-page-break: ${config.features.auto_page_break_h2 ? 'always' : 'auto'};
         }
     `;
-    css = themeStyles + css;
+    
+    // Load base CSS and handle Custom CSS injection
+    let baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
+    let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
+    
+    const finalCss = themeStyles + baseCss + '\n' + customCss;
 
     try {
         const pdf = await mdToPdf({ path: inputPath }, { 
             dest: outputPath,
-            css: css,
+            css: finalCss,
             stylesheet: [], // Disable default stylesheets
             pdf_options: {
                 ...config.pdf_options,
