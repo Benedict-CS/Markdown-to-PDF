@@ -22,9 +22,10 @@ async function convert(inputFile) {
     const customCssPath = path.resolve(__dirname, 'custom.css');
     const configPath = path.resolve(__dirname, 'config.json');
 
-    // Default configuration (Final intuitive version)
+    // Default configuration
     let config = { 
         pagination: { 
+            enable_auto_page_break: true,
             auto_page_break_level: 2, 
             format: 'A4', 
             margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' }
@@ -69,17 +70,17 @@ async function convert(inputFile) {
     let baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
     let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
 
-    // Logic to determine which header level triggers a page break
+    // Logic for Auto Page Breaks (Inclusive: Level 2 includes H1 and H2)
+    const isEnabled = config.pagination.enable_auto_page_break;
     const level = config.pagination.auto_page_break_level;
+    
     const breakRules = `
-        h1 { page-break-before: ${level === 1 ? 'always' : 'auto'} !important; }
-        h2 { page-break-before: ${level === 2 ? 'always' : 'auto'} !important; }
-        h3 { page-break-before: ${level === 3 ? 'always' : 'auto'} !important; }
+        h1 { page-break-before: ${(isEnabled && level >= 1) ? 'always' : 'auto'} !important; }
+        h2 { page-break-before: ${(isEnabled && level >= 2) ? 'always' : 'auto'} !important; }
+        h3 { page-break-before: ${(isEnabled && level >= 3) ? 'always' : 'auto'} !important; }
     `;
 
     // Inject Dynamic Appearance into CSS
-    // CRITICAL FIX: Injected variables MUST come AFTER baseCss to override :root defaults, 
-    // or baseCss must not redefine them. We will put themeStyles LAST for absolute priority.
     const themeStyles = `
         :root {
             --accent-color: ${config.appearance.accent_color};
@@ -87,7 +88,6 @@ async function convert(inputFile) {
             --base-font-size: ${config.appearance.base_font_size};
             --line-height: ${config.appearance.line_height};
             --h1-border: 2px solid ${config.appearance.h1_border_color};
-            --h2-page-break: ${level === 2 ? 'always' : 'auto'};
         }
         ${breakRules}
     `;
@@ -127,7 +127,7 @@ async function convert(inputFile) {
         </div>
     `;
 
-    // Master switch
+    // Master switch for Puppeteer
     const enableHeaderFooter = config.header_footer.show_header || 
                                config.header_footer.show_copyright || 
                                config.header_footer.show_page_numbers;

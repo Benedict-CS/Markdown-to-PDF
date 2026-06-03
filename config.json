@@ -1,5 +1,6 @@
 {
   "pagination": {
+    "enable_auto_page_break": false,
     "auto_page_break_level": 2,
     "format": "A4",
     "margin": {
@@ -10,7 +11,7 @@
     }
   },
   "header_footer": {
-    "show_header": false,
+    "show_header": true,
     "show_copyright": true,
     "show_page_numbers": true,
     "page_number_format": "page_of"

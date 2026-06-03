@@ -41,7 +41,8 @@ npm run watch <your-file.md>
 
 | Section | Key | Description |
 | :--- | :--- | :--- |
-| **pagination** | `auto_page_break_level` | `1`: H1, `2`: H2, `3`: H3, `0`: Disable. |
+| **pagination** | `enable_auto_page_break` | Master switch for automatic page breaks. |
+| | `auto_page_break_level` | `1`: H1, `2`: H1 & H2, `3`: H1, H2 & H3. |
 | | `page_number_format` | See below. |
 | **header_footer** | `show_header` | Show Title & Author at page top. |
 | | `show_copyright` | Show copyright text at bottom left. |
