@@ -39,58 +39,79 @@ async function convert(inputFile) {
             line_height: '1.5',
             h1_border_color: '#333333'
         },
-        features: { auto_page_break_h2: true, use_custom_css: true }
+        features: { 
+            auto_page_break_h2: true, 
+            use_custom_css: true,
+            display_document_header: false
+        }
     };
 
-    // Load user configuration
+    // Load and deeply merge user configuration
     if (fs.existsSync(configPath)) {
         try {
             const userConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-            config = {
-                ...config,
-                pdf_options: { ...config.pdf_options, ...userConfig.pdf_options },
-                metadata: { ...config.metadata, ...userConfig.metadata },
-                appearance: { ...config.appearance, ...userConfig.appearance },
-                features: { ...config.features, ...userConfig.features }
-            };
+            
+            if (userConfig.pdf_options) {
+                config.pdf_options = { ...config.pdf_options, ...userConfig.pdf_options };
+                // Ensure nested margin object is deeply merged
+                if (userConfig.pdf_options.margin) {
+                    config.pdf_options.margin = { ...config.pdf_options.margin, ...userConfig.pdf_options.margin };
+                }
+            }
+            if (userConfig.metadata) config.metadata = { ...config.metadata, ...userConfig.metadata };
+            if (userConfig.appearance) config.appearance = { ...config.appearance, ...userConfig.appearance };
+            if (userConfig.features) config.features = { ...config.features, ...userConfig.features };
         } catch (e) {
-            console.error('Error parsing config.json, using defaults.');
+            console.error('❌ Error parsing config.json, using defaults.');
         }
     }
 
+    // Load base CSS and custom CSS
+    let baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
+    let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
+
     // Inject Dynamic Appearance into CSS
+    // CRITICAL FIX: This must be placed AFTER the base CSS so the variables override the defaults in :root
     const themeStyles = `
         :root {
-            --accent-color: ${config.appearance.accent_color};
-            --text-color: ${config.appearance.text_color};
-            --base-font-size: ${config.appearance.base_font_size};
-            --line-height: ${config.appearance.line_height};
-            --h1-border: 2px solid ${config.appearance.h1_border_color};
-            --h2-page-break: ${config.features.auto_page_break_h2 ? 'always' : 'auto'};
+            --accent-color: ${config.appearance.accent_color} !important;
+            --text-color: ${config.appearance.text_color} !important;
+            --base-font-size: ${config.appearance.base_font_size} !important;
+            --line-height: ${config.appearance.line_height} !important;
+            --h1-border: 2px solid ${config.appearance.h1_border_color} !important;
+            --h2-page-break: ${config.features.auto_page_break_h2 ? 'always' : 'auto'} !important;
         }
     `;
     
-    // Load base CSS and handle Custom CSS injection
-    let baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
-    let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
-    
-    const finalCss = themeStyles + baseCss + '\n' + customCss;
+    // Assemble final CSS
+    const finalCss = baseCss + '\n' + themeStyles + '\n' + customCss;
+
+    // Header Template (Metadata)
+    const headerTemplate = config.features.display_document_header ? `
+        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa;">
+            <span>${config.metadata.title}</span>
+            <span>${config.metadata.author}</span>
+        </div>
+    ` : '<span></span>';
+
+    // Footer Template (Pagination & Copyright)
+    const footerTemplate = config.pdf_options.displayHeaderFooter ? `
+        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888;">
+            <span>${config.metadata.footer_left}</span>
+            <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
+        </div>
+    ` : '<span></span>';
 
     try {
         const pdf = await mdToPdf({ path: inputPath }, { 
             dest: outputPath,
             css: finalCss,
-            stylesheet: [], // Disable default stylesheets
+            stylesheet: [], // Disable default stylesheets to prevent conflicts
             pdf_options: {
                 ...config.pdf_options,
-                headerTemplate: '<span></span>',
-                footerTemplate: config.pdf_options.displayHeaderFooter ? `
-                    <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888;">
-                        <span>${config.metadata.footer_left}</span>
-                        <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
-                    </div>
-                ` : '<span></span>',
-                waitUntil: 'networkidle0',
+                headerTemplate: headerTemplate,
+                footerTemplate: footerTemplate,
+                waitUntil: 'networkidle0', // Ensure images load
             },
             launch_options: {
                 args: [

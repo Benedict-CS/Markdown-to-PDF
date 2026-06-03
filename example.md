@@ -14,7 +14,7 @@ You can easily emphasize text using standard markdown:
 
 # Heading 1 (H1)
 ## Heading 2 (H2)
-### Heading 3 (H3)
+### Heading 3 (H3) 
 #### Heading 4 (H4)
 ##### Heading 5 (H5)
 

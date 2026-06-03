@@ -2,27 +2,28 @@
   "pdf_options": {
     "format": "A4",
     "margin": {
-      "top": "10mm",
+      "top": "12mm",
       "right": "15mm",
-      "bottom": "12mm",
+      "bottom": "15mm",
       "left": "15mm"
     },
     "displayHeaderFooter": true
   },
   "metadata": {
-    "title": "Professional Document",
-    "author": "Benedict",
+    "title": "Elegant MD-to-PDF",
+    "author": "John Doe",
     "footer_left": "© 2026 All Rights Reserved"
   },
   "appearance": {
     "accent_color": "#0366d6",
     "text_color": "#333333",
     "base_font_size": "14px",
-    "line_height": "1.5", 
+    "line_height": "1.5",
     "h1_border_color": "#333333"
   },
   "features": {
-    "auto_page_break_h2": false,
-    "use_custom_css": false
+    "auto_page_break_h2": true,
+    "use_custom_css": true,
+    "display_document_header": false
   }
 }
