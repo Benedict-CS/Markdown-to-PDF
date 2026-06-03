@@ -11,7 +11,7 @@
   },
   "metadata": {
     "title": "Elegant MD-to-PDF",
-    "author": "John Doe",
+    "author": "Benedict Tiong",
     "footer_left": "© 2026 All Rights Reserved"
   },
   "appearance": {
@@ -22,7 +22,7 @@
     "h1_border_color": "#333333"
   },
   "features": {
-    "auto_page_break_h2": true,
+    "auto_page_break_h2": false,
     "use_custom_css": true,
     "display_document_header": false
   }

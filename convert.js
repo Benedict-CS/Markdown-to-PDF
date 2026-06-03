@@ -53,7 +53,6 @@ async function convert(inputFile) {
             
             if (userConfig.pdf_options) {
                 config.pdf_options = { ...config.pdf_options, ...userConfig.pdf_options };
-                // Ensure nested margin object is deeply merged
                 if (userConfig.pdf_options.margin) {
                     config.pdf_options.margin = { ...config.pdf_options.margin, ...userConfig.pdf_options.margin };
                 }
@@ -71,20 +70,20 @@ async function convert(inputFile) {
     let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
 
     // Inject Dynamic Appearance into CSS
-    // CRITICAL FIX: This must be placed AFTER the base CSS so the variables override the defaults in :root
+    // CRITICAL FIX: The dynamic styles must be prepended to override the :root in style.css
     const themeStyles = `
         :root {
-            --accent-color: ${config.appearance.accent_color} !important;
-            --text-color: ${config.appearance.text_color} !important;
-            --base-font-size: ${config.appearance.base_font_size} !important;
-            --line-height: ${config.appearance.line_height} !important;
-            --h1-border: 2px solid ${config.appearance.h1_border_color} !important;
-            --h2-page-break: ${config.features.auto_page_break_h2 ? 'always' : 'auto'} !important;
+            --accent-color: ${config.appearance.accent_color};
+            --text-color: ${config.appearance.text_color};
+            --base-font-size: ${config.appearance.base_font_size};
+            --line-height: ${config.appearance.line_height};
+            --h1-border: 2px solid ${config.appearance.h1_border_color};
+            --h2-page-break: ${config.features.auto_page_break_h2 ? 'always' : 'auto'};
         }
     `;
     
-    // Assemble final CSS
-    const finalCss = baseCss + '\n' + themeStyles + '\n' + customCss;
+    // Assemble final CSS: Injected variables FIRST so they redefine :root
+    const finalCss = themeStyles + '\n' + baseCss + '\n' + customCss;
 
     // Header Template (Metadata)
     const headerTemplate = config.features.display_document_header ? `
@@ -106,12 +105,12 @@ async function convert(inputFile) {
         const pdf = await mdToPdf({ path: inputPath }, { 
             dest: outputPath,
             css: finalCss,
-            stylesheet: [], // Disable default stylesheets to prevent conflicts
+            stylesheet: [], 
             pdf_options: {
                 ...config.pdf_options,
                 headerTemplate: headerTemplate,
                 footerTemplate: footerTemplate,
-                waitUntil: 'networkidle0', // Ensure images load
+                waitUntil: 'networkidle0',
             },
             launch_options: {
                 args: [
