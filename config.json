@@ -4,6 +4,7 @@
     "display_document_header": false,
     "display_footer_left": true,
     "auto_page_break_level": 2,
+    "page_number_format": "page_of",
     "format": "A4",
     "margin": {
       "top": "12mm",

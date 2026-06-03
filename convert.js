@@ -22,13 +22,14 @@ async function convert(inputFile) {
     const customCssPath = path.resolve(__dirname, 'custom.css');
     const configPath = path.resolve(__dirname, 'config.json');
 
-    // Default configuration (Flattened and restructured for logic)
+    // Default configuration
     let config = { 
         pagination: { 
             display_header_footer: true,
             display_document_header: false,
             display_footer_left: true,
-            auto_page_break_level: 2, // 1 for h1, 2 for h2, 3 for h3, 0 to disable
+            auto_page_break_level: 2,
+            page_number_format: 'page_of', // 'page_of', 'slash', 'simple'
             format: 'A4', 
             margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' }
         },
@@ -95,11 +96,26 @@ async function convert(inputFile) {
         </div>
     ` : '<span></span>';
 
+    // Page Number Formatting Logic
+    let pageNumberHtml = '';
+    switch (config.pagination.page_number_format) {
+        case 'slash':
+            pageNumberHtml = '<span class="pageNumber"></span> / <span class="totalPages"></span>';
+            break;
+        case 'simple':
+            pageNumberHtml = '<span class="pageNumber"></span>';
+            break;
+        case 'page_of':
+        default:
+            pageNumberHtml = 'Page <span class="pageNumber"></span> of <span class="totalPages"></span>';
+            break;
+    }
+
     // Footer Template
     const footerTemplate = config.pagination.display_header_footer ? `
         <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888;">
             <span>${config.pagination.display_footer_left ? config.metadata.footer_left : ''}</span>
-            <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
+            <span>${pageNumberHtml}</span>
         </div>
     ` : '<span></span>';
 

@@ -39,9 +39,11 @@ npm run watch <your-file.md>
 
 ### Centralized Configuration (`config.json`)
 You can now control the core features without touching the code. Edit `config.json` to:
-- **Toggle Page Numbers & Footer**: Set `pdf_options.displayHeaderFooter` to `false`.
-- **Toggle Auto Page Breaks**: Set `features.auto_page_break_h2` to `false` to prevent `##` headings from starting on a new page.
-- **Document Metadata**: Add your name and copyright to the `metadata` block. Set `features.display_document_header` to `true` to display the title and author at the top of the PDF.
+- **Adjust Pagination**:
+  - `display_header_footer`: Toggle entire header/footer system.
+  - `auto_page_break_level`: Set which heading level (1-3) triggers a new page. Set to `0` to disable.
+  - `page_number_format`: Choose from `"page_of"` (Page 1 of 5), `"slash"` (1 / 5), or `"simple"` (1).
+- **Document Metadata**: Add your name and copyright to the `metadata` block. 
 - **Theme Variables**: Modify the `appearance` block to easily change the accent color, text color, base font size, and line height without writing CSS.
 - **Adjust Margins**: Modify the `pdf_options.margin` object.
 
