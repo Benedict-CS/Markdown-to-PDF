@@ -69,32 +69,33 @@ async function convert(inputFile) {
         }
     }
 
-    // 3. CSS Logic
-    let baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
-    let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
+    // 3. Assemble CSS
+    const baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
+    const customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
 
     const isEnabled = config.pagination.enable_auto_page_break;
     
-    // Independent Page Break Logic
+    // Explicitly force page breaks based on independent toggles
     const breakRules = `
         h1 { page-break-before: ${(isEnabled && config.pagination.break_before_h1) ? 'always' : 'auto'} !important; }
         h2 { page-break-before: ${(isEnabled && config.pagination.break_before_h2) ? 'always' : 'auto'} !important; }
         h3 { page-break-before: ${(isEnabled && config.pagination.break_before_h3) ? 'always' : 'auto'} !important; }
         
-        /* SMART FIX: Prevent double page breaks when headers follow each other directly */
+        /* Prevent double breaks when headers are adjacent */
         h1 + h2, h1 + h3, h2 + h3 { page-break-before: auto !important; }
     `;
 
     const themeStyles = `
         :root {
-            --accent-color: ${config.appearance.accent_color};
-            --text-color: ${config.appearance.text_color};
-            --base-font-size: ${config.appearance.base_font_size};
-            --line-height: ${config.appearance.line_height};
+            --accent-color: ${config.appearance.accent_color} !important;
+            --text-color: ${config.appearance.text_color} !important;
+            --base-font-size: ${config.appearance.base_font_size} !important;
+            --line-height: ${config.appearance.line_height} !important;
         }
         ${breakRules}
     `;
     
+    // Assemble final CSS: Injected variables LAST for maximum priority
     const finalCss = baseCss + '\n' + themeStyles + '\n' + customCss;
 
     // 4. Header/Footer Templates
