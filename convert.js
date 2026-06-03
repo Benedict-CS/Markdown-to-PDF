@@ -48,10 +48,17 @@ async function convert(inputFile) {
                     <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; text-align: center; color: #888;">
                         Page <span class="pageNumber"></span> of <span class="totalPages"></span>
                     </div>
-                `
+                `,
+                // Wait for all network requests (images, styles) to finish
+                waitUntil: 'networkidle0',
             },
             launch_options: {
-                args: ['--no-sandbox', '--disable-setuid-sandbox']
+                args: [
+                    '--no-sandbox', 
+                    '--disable-setuid-sandbox',
+                    '--allow-file-access-from-files',
+                    '--enable-local-file-access'
+                ]
             }
         });
 
