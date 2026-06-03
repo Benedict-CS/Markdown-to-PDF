@@ -21,36 +21,61 @@ async function convert(inputFile) {
 
     const outputPath = inputPath.replace(/\.md$/, '.pdf');
     const cssPath = path.resolve(__dirname, 'style.css');
+    const customCssPath = path.resolve(__dirname, 'custom.css');
     const configPath = path.resolve(__dirname, 'config.json');
 
-    let css = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
+    // Default configuration
     let config = { 
         pdf_options: { 
             format: 'A4', 
             margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' },
             displayHeaderFooter: true 
         },
-        features: { auto_page_break_h2: true }
+        metadata: { title: 'Document', author: '', footer_left: '' },
+        appearance: { 
+            accent_color: '#0366d6', 
+            text_color: '#333333', 
+            base_font_size: '14px', 
+            line_height: '1.5',
+            h1_border_color: '#333333'
+        },
+        features: { auto_page_break_h2: true, use_custom_css: true }
     };
 
+    // Load user configuration
     if (fs.existsSync(configPath)) {
         try {
             const userConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-            config = { ...config, ...userConfig };
-            config.pdf_options = { ...config.pdf_options, ...userConfig.pdf_options };
-            config.features = { ...config.features, ...userConfig.features };
+            config = {
+                ...config,
+                pdf_options: { ...config.pdf_options, ...userConfig.pdf_options },
+                metadata: { ...config.metadata, ...userConfig.metadata },
+                appearance: { ...config.appearance, ...userConfig.appearance },
+                features: { ...config.features, ...userConfig.features }
+            };
         } catch (e) {
             console.error('Error parsing config.json, using defaults.');
         }
     }
 
-    // Inject configuration into CSS variables
-    const injectedStyles = `
+    // Load base CSS and handle Custom CSS injection
+    let css = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
+    if (config.features.use_custom_css && fs.existsSync(customCssPath)) {
+        css += '\n' + fs.readFileSync(customCssPath, 'utf8');
+    }
+
+    // Inject Dynamic Appearance into CSS
+    const themeStyles = `
         :root {
+            --accent-color: ${config.appearance.accent_color};
+            --text-color: ${config.appearance.text_color};
+            --base-font-size: ${config.appearance.base_font_size};
+            --line-height: ${config.appearance.line_height};
+            --h1-border: 2px solid ${config.appearance.h1_border_color};
             --h2-page-break: ${config.features.auto_page_break_h2 ? 'always' : 'auto'};
         }
     `;
-    css = injectedStyles + css;
+    css = themeStyles + css;
 
     try {
         const pdf = await mdToPdf({ path: inputPath }, { 
@@ -61,8 +86,9 @@ async function convert(inputFile) {
                 ...config.pdf_options,
                 headerTemplate: '<span></span>',
                 footerTemplate: config.pdf_options.displayHeaderFooter ? `
-                    <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; text-align: center; color: #888;">
-                        Page <span class="pageNumber"></span> of <span class="totalPages"></span>
+                    <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888;">
+                        <span>${config.metadata.footer_left}</span>
+                        <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
                     </div>
                 ` : '<span></span>',
                 waitUntil: 'networkidle0',
