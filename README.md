@@ -91,6 +91,13 @@ To force a new page at a specific point, add this tag in your Markdown:
 <div class="page-break"></div>
 ```
 
+### Images & Media
+You can use both remote (URL) and local images:
+- **Remote**: `![Alt](https://example.com/image.png)`
+- **Local**: `![Alt](./images/photo.jpg)` (Recommended for stability)
+
+*Note: For remote images, ensure you have a stable internet connection during conversion.*
+
 ### Professional Tables
 Standard Markdown tables are automatically styled. For advanced control, use the `data-table` class:
 
