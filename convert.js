@@ -42,7 +42,8 @@ async function convert(inputFile) {
         features: { 
             auto_page_break_h2: true, 
             use_custom_css: true,
-            display_document_header: false
+            display_document_header: false,
+            display_footer_left: true
         }
     };
 
@@ -70,7 +71,6 @@ async function convert(inputFile) {
     let customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
 
     // Inject Dynamic Appearance into CSS
-    // CRITICAL FIX: The dynamic styles must be prepended to override the :root in style.css
     const themeStyles = `
         :root {
             --accent-color: ${config.appearance.accent_color};
@@ -82,10 +82,9 @@ async function convert(inputFile) {
         }
     `;
     
-    // Assemble final CSS: Injected variables FIRST so they redefine :root
     const finalCss = themeStyles + '\n' + baseCss + '\n' + customCss;
 
-    // Header Template (Metadata)
+    // Header Template
     const headerTemplate = config.features.display_document_header ? `
         <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa;">
             <span>${config.metadata.title}</span>
@@ -93,10 +92,11 @@ async function convert(inputFile) {
         </div>
     ` : '<span></span>';
 
-    // Footer Template (Pagination & Copyright)
+    // Footer Template
+    // Left side (footer_left) visibility is now controlled by config.features.display_footer_left
     const footerTemplate = config.pdf_options.displayHeaderFooter ? `
         <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888;">
-            <span>${config.metadata.footer_left}</span>
+            <span>${config.features.display_footer_left ? config.metadata.footer_left : ''}</span>
             <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
         </div>
     ` : '<span></span>';
