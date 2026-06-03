@@ -1,23 +1,23 @@
 /**
  * Elegant Markdown to PDF Configuration
  * 
- * You can customize the PDF output by modifying this file.
- * Since this is a JavaScript file, you can use comments to explain your settings!
+ * This is the main configuration file. Since it is a JavaScript file, 
+ * you can add comments to describe your settings.
  */
 
 module.exports = {
   pagination: {
-    // Master switch for automatic page breaks (true/false)
+    // Master switch to enable/disable automatic page breaks
     enable_auto_page_break: true,
 
-    // Which heading level triggers a new page?
-    // 1: H1 only, 2: H1 & H2, 3: H1, H2 & H3
+    // Defines which heading levels trigger a page break.
+    // 1: H1 only | 2: H1 & H2 | 3: H1, H2 & H3
     auto_page_break_level: 2,
 
-    // Page format: 'A4', 'Letter', etc.
+    // Standard paper size (e.g., 'A4', 'Letter', 'Legal')
     format: "A4",
 
-    // Page margins
+    // Page margins (can use mm, cm, or in)
     margin: {
       top: "12mm",
       right: "15mm",
@@ -27,28 +27,41 @@ module.exports = {
   },
 
   header_footer: {
-    // -- Header (Top of page) --
-    show_header: false, // Set to true to show Title and Author at the top
+    // -- Header Settings (Top of each page) --
+    // If true, shows title and author at the top left/right
+    show_header: false,
     header_title: "Document Title",
     header_author: "Author Name",
 
-    // -- Footer (Bottom of page) --
+    // -- Footer Settings (Bottom of each page) --
+    // If true, shows the copyright text at the bottom left
     show_copyright: true,
     copyright_text: "© 2026 All Rights Reserved",
 
+    // If true, shows page numbers at the bottom right
     show_page_numbers: true,
-    // Format: 'page_of' (Page 1 of 5), 'slash' (1 / 5), 'simple' (1)
+
+    // Page number style: 
+    // 'page_of' (Page 1 of 5) | 'slash' (1 / 5) | 'simple' (1)
     page_number_format: "page_of"
   },
 
   appearance: {
+    // Main theme color for headers and accents
     accent_color: "#0366d6",
+
+    // Base text color for the entire document
     text_color: "#333333",
+
+    // Base font size
     base_font_size: "14px",
+
+    // Spacing between lines of text
     line_height: "1.5"
   },
 
   features: {
+    // If true, the tool will load 'custom.css' from the root folder if it exists
     use_custom_css: true
   }
 };

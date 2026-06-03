@@ -30,20 +30,21 @@ npm run convert <your-file.md>
 ```
 
 ### 2. Live Watch Mode
-Automatically regenerates the PDF every time you save your `.md` or `.css` files.
+Automatically regenerates the PDF every time you save your `.md`, `.css`, or `config.js` files.
 ```bash
 npm run watch <your-file.md>
 ```
 
 ## 🎨 Customization
 
-### Configuration Guide (`config.json`)
+### Centralized Configuration (`config.js`)
+You can control the tool's behavior using **`config.js`**. Unlike JSON, this file supports **English comments**, making it easier to understand each setting.
 
 | Section | Key | Description |
 | :--- | :--- | :--- |
 | **pagination** | `enable_auto_page_break` | Master switch for automatic page breaks. |
 | | `auto_page_break_level` | `1`: H1, `2`: H1 & H2, `3`: H1, H2 & H3. |
-| | `page_number_format` | See below. |
+| | `page_number_format` | Choose format (see below). |
 | **header_footer** | `show_header` | Show Title & Author at page top. |
 | | `show_copyright` | Show copyright text at bottom left. |
 | | `show_page_numbers` | Show page numbers at bottom right. |
@@ -54,7 +55,7 @@ npm run watch <your-file.md>
 - `"simple"`: `1`
 
 ### Styling (CSS)
-Modify `style.css` to adjust fonts and colors. Use the `appearance` block in `config.json` for quick color/font size changes.
+Modify `style.css` to adjust fonts and colors. Use the `appearance` block in `config.js` for quick color/font size changes.
 
 ### Advanced Layouts
 
