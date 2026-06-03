@@ -22,18 +22,20 @@ async function convert(inputFile) {
     const customCssPath = path.resolve(__dirname, 'custom.css');
     const configPath = path.resolve(__dirname, 'config.json');
 
-    // Default configuration
+    // Default configuration (Final intuitive version)
     let config = { 
         pagination: { 
-            display_header_footer: true,
-            display_document_header: false,
-            display_footer_left: true,
-            auto_page_break_level: 2,
-            page_number_format: 'page_of', // 'page_of', 'slash', 'simple'
+            auto_page_break_level: 2, 
             format: 'A4', 
             margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' }
         },
-        metadata: { title: 'Document', author: '', footer_left: '' },
+        header_footer: {
+            show_header: false,
+            show_copyright: true,
+            show_page_numbers: true,
+            page_number_format: 'page_of'
+        },
+        metadata: { title: 'Document', author: '', copyright_text: '' },
         appearance: { 
             accent_color: '#0366d6', 
             text_color: '#333333', 
@@ -54,6 +56,7 @@ async function convert(inputFile) {
                     config.pagination.margin = { ...config.pagination.margin, ...userConfig.pagination.margin };
                 }
             }
+            if (userConfig.header_footer) config.header_footer = { ...config.header_footer, ...userConfig.header_footer };
             if (userConfig.metadata) config.metadata = { ...config.metadata, ...userConfig.metadata };
             if (userConfig.appearance) config.appearance = { ...config.appearance, ...userConfig.appearance };
             if (userConfig.features) config.features = { ...config.features, ...userConfig.features };
@@ -88,8 +91,8 @@ async function convert(inputFile) {
     
     const finalCss = themeStyles + '\n' + baseCss + '\n' + customCss;
 
-    // Header Template
-    const headerTemplate = config.pagination.display_document_header ? `
+    // Header Template (Title & Author at the very top)
+    const headerTemplate = config.header_footer.show_header ? `
         <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa;">
             <span>${config.metadata.title}</span>
             <span>${config.metadata.author}</span>
@@ -98,26 +101,33 @@ async function convert(inputFile) {
 
     // Page Number Formatting Logic
     let pageNumberHtml = '';
-    switch (config.pagination.page_number_format) {
-        case 'slash':
-            pageNumberHtml = '<span class="pageNumber"></span> / <span class="totalPages"></span>';
-            break;
-        case 'simple':
-            pageNumberHtml = '<span class="pageNumber"></span>';
-            break;
-        case 'page_of':
-        default:
-            pageNumberHtml = 'Page <span class="pageNumber"></span> of <span class="totalPages"></span>';
-            break;
+    if (config.header_footer.show_page_numbers) {
+        switch (config.header_footer.page_number_format) {
+            case 'slash':
+                pageNumberHtml = '<span class="pageNumber"></span> / <span class="totalPages"></span>';
+                break;
+            case 'simple':
+                pageNumberHtml = '<span class="pageNumber"></span>';
+                break;
+            case 'page_of':
+            default:
+                pageNumberHtml = 'Page <span class="pageNumber"></span> of <span class="totalPages"></span>';
+                break;
+        }
     }
 
     // Footer Template
-    const footerTemplate = config.pagination.display_header_footer ? `
+    const footerTemplate = `
         <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888;">
-            <span>${config.pagination.display_footer_left ? config.metadata.footer_left : ''}</span>
+            <span>${config.header_footer.show_copyright ? config.metadata.copyright_text : ''}</span>
             <span>${pageNumberHtml}</span>
         </div>
-    ` : '<span></span>';
+    `;
+
+    // Master switch: Puppeteer needs this true if any header/footer element is shown
+    const enableHeaderFooter = config.header_footer.show_header || 
+                               config.header_footer.show_copyright || 
+                               config.header_footer.show_page_numbers;
 
     try {
         const pdf = await mdToPdf({ path: inputPath }, { 
@@ -127,7 +137,7 @@ async function convert(inputFile) {
             pdf_options: {
                 format: config.pagination.format,
                 margin: config.pagination.margin,
-                displayHeaderFooter: config.pagination.display_header_footer,
+                displayHeaderFooter: enableHeaderFooter,
                 headerTemplate: headerTemplate,
                 footerTemplate: footerTemplate,
                 waitUntil: 'networkidle0',

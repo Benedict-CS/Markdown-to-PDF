@@ -1,10 +1,6 @@
 {
   "pagination": {
-    "display_header_footer": true,
-    "display_document_header": false,
-    "display_footer_left": true,
     "auto_page_break_level": 2,
-    "page_number_format": "page_of",
     "format": "A4",
     "margin": {
       "top": "12mm",
@@ -13,10 +9,16 @@
       "left": "15mm"
     }
   },
+  "header_footer": {
+    "show_header": false,
+    "show_copyright": true,
+    "show_page_numbers": true,
+    "page_number_format": "page_of"
+  },
   "metadata": {
     "title": "Elegant MD-to-PDF",
     "author": "John Doe",
-    "footer_left": "© 2026 All Rights Reserved"
+    "copyright_text": "© 2026 All Rights Reserved"
   },
   "appearance": {
     "accent_color": "#0366d6",
