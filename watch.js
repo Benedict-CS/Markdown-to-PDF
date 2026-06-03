@@ -30,8 +30,9 @@ const triggerConversion = async () => {
 
 // 監控整個資料夾以確保在 Windows 上的穩定性
 fs.watch(__dirname, (eventType, filename) => {
-    // 只要是 Markdown 或 CSS 變動，就觸發轉換
-    if (filename === targetFile || filename === 'style.css') {
+    // 只要是 Markdown, CSS 或 Config 變動，就觸發轉換
+    const watchedFiles = [targetFile, 'style.css', 'config.json'];
+    if (watchedFiles.includes(filename)) {
         if (timeout) clearTimeout(timeout);
         timeout = setTimeout(triggerConversion, 200); 
     }
