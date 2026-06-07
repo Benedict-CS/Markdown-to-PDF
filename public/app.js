@@ -45,8 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const md = editor.getValue().trim();
         if (!md) return null;
 
-        const today = new Date().toISOString().split('T')[0];
-        const processText = (str) => (str || '').replace(/{date}/g, today);
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+        const processText = (str) => (str || '').replace(/{date}/g, today).replace(/{time}/g, time);
 
         const config = {
             pagination: { 
