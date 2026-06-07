@@ -113,23 +113,13 @@ async function convert(input, options = {}) {
     try {
         const pdf = await mdToPdf(inputSource, { 
             css: finalCss,
-            stylesheet: [
-                'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css'
-            ], 
-            script: [
-                { url: 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js' },
-                { url: 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js' },
-                { content: 'document.addEventListener("DOMContentLoaded", function() { renderMathInElement(document.body); });' },
-                { url: 'https://cdn.jsdelivr.net/npm/mermaid@10.2.4/dist/mermaid.min.js' },
-                { content: 'mermaid.initialize({ startOnLoad: true, theme: "default" });' }
-            ],
             pdf_options: {
                 format: config.pagination.format,
                 margin: config.pagination.margin,
                 displayHeaderFooter: enableHeaderFooter,
                 headerTemplate: headerTemplate,
                 footerTemplate: footerTemplate,
-                waitUntil: 'networkidle2', 
+                waitUntil: 'load', 
             },
             launch_options: {
                 args: [
