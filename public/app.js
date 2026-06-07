@@ -71,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateWebPreview();
         } else {
             webPreview.style.display = 'none';
-            // Only show PDF if it has content, otherwise placeholder
             if (pdfPreview.src && pdfPreview.src.startsWith('blob:')) {
                 pdfPreview.style.display = 'block';
                 previewPlaceholder.style.display = 'none';
@@ -95,22 +94,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Configure marked to handle relative images correctly
-        marked.setOptions({
-            breaks: true,
-            gfm: true
-        });
-
-        // Render HTML
+        marked.setOptions({ breaks: true, gfm: true });
         webPreview.innerHTML = marked.parse(markdown);
 
-        // Fix image paths in web preview (ensure relative images in markdown work)
+        // Fix image paths
         const images = webPreview.querySelectorAll('img');
         images.forEach(img => {
             const src = img.getAttribute('src');
-            // If it's a relative path and doesn't start with /
             if (src && !src.startsWith('http') && !src.startsWith('/') && !src.startsWith('data:')) {
-                // Prepend / to make it relative to root where images/ folder lives
                 img.src = '/' + src;
             }
         });
@@ -132,17 +123,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const content = block.textContent;
             const id = 'mermaid-' + Date.now() + Math.random().toString(36).substr(2, 5);
             try {
-                const { render } = mermaid;
-                const { svg } = await render(id, content);
+                const { svg } = await mermaid.render(id, content);
                 pre.outerHTML = `<div class="mermaid-rendered">${svg}</div>`;
-            } catch (e) {
-                console.error('Mermaid render error', e);
-            }
+            } catch (e) { console.error('Mermaid error', e); }
         }
     }
 
     /**
-     * Persistence: Save content and settings to localStorage
+     * Persistence
      */
     function saveToLocal() {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
@@ -153,63 +141,38 @@ document.addEventListener('DOMContentLoaded', () => {
         docs[currentDocId].lastSaved = new Date().toISOString();
         localStorage.setItem('md_docs', JSON.stringify(docs));
 
-        const globalSettings = {
-            pageFormat: pageFormat.value,
-            showHeader: showHeader.checked,
-            headerTitle: headerTitle.value,
-            showPageNumbers: showPageNumbers.checked,
-            pageFormatStyle: pageFormatStyle.value,
-            showCopyright: showCopyright.checked,
-            copyright_text: copyrightText.value,
-            autoPageBreak: autoPageBreak.checked,
-            breakH1: breakH1.checked,
-            breakH2: breakH2.checked,
-            breakH3: breakH3.checked
+        const settings = {
+            pageFormat: pageFormat.value, showHeader: showHeader.checked, headerTitle: headerTitle.value,
+            showPageNumbers: showPageNumbers.checked, pageFormatStyle: pageFormatStyle.value,
+            showCopyright: showCopyright.checked, copyright_text: copyrightText.value,
+            autoPageBreak: autoPageBreak.checked, breakH1: breakH1.checked, breakH2: breakH2.checked, breakH3: breakH3.checked
         };
-        localStorage.setItem('md_pdf_settings', JSON.stringify(globalSettings));
+        localStorage.setItem('md_pdf_settings', JSON.stringify(settings));
         
         statusMsg.classList.add('saved');
         setTimeout(() => statusMsg.classList.remove('saved'), 1000);
     }
 
-    /**
-     * Get a clean filename
-     */
-    function getExportFilename(extension) {
-        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-        let name = docs[currentDocId]?.name;
-        if (!name || name === 'Primary Draft' || name === 'Untitled Draft') {
-            const match = editor.getValue().match(/^#\s+(.+)$/m);
-            name = match ? match[1].trim() : 'document';
-        }
-        return name.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.' + extension;
-    }
-
-    /**
-     * Persistence: Load content and settings from localStorage
-     */
     function loadFromLocal() {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
         const doc = docs[currentDocId];
-        if (doc) {
-            editor.setValue(doc.markdown || '');
-        }
+        if (doc) editor.setValue(doc.markdown || '');
 
-        const savedSettings = localStorage.getItem('md_pdf_settings');
-        if (savedSettings) {
+        const saved = localStorage.getItem('md_pdf_settings');
+        if (saved) {
             try {
-                const data = JSON.parse(savedSettings);
-                pageFormat.value = data.pageFormat || 'A4';
-                showHeader.checked = data.showHeader ?? false;
-                headerTitle.value = data.headerTitle || '';
-                showPageNumbers.checked = data.showPageNumbers ?? true;
-                pageFormatStyle.value = data.pageFormatStyle || 'page_of';
-                showCopyright.checked = data.showCopyright ?? true;
-                copyrightText.value = data.copyright_text || '';
-                autoPageBreak.checked = data.autoPageBreak ?? true;
-                breakH1.checked = data.breakH1 ?? false;
-                breakH2.checked = data.breakH2 ?? false;
-                breakH3.checked = data.breakH3 ?? false;
+                const d = JSON.parse(saved);
+                pageFormat.value = d.pageFormat || 'A4';
+                showHeader.checked = d.showHeader ?? false;
+                headerTitle.value = d.headerTitle || '';
+                showPageNumbers.checked = d.showPageNumbers ?? true;
+                pageFormatStyle.value = d.pageFormatStyle || 'page_of';
+                showCopyright.checked = d.showCopyright ?? true;
+                copyrightText.value = d.copyright_text || '';
+                autoPageBreak.checked = d.autoPageBreak ?? true;
+                breakH1.checked = d.breakH1 ?? false;
+                breakH2.checked = d.breakH2 ?? false;
+                breakH3.checked = d.breakH3 ?? false;
             } catch(e) {}
         }
         updateDocSelector();
@@ -227,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(docs).sort((a, b) => (docs[b].lastSaved || '').localeCompare(docs[a].lastSaved || '')).forEach(id => {
             const opt = document.createElement('option');
             opt.value = id;
-            opt.textContent = docs[id].name || (id === 'current' ? 'Primary Draft' : 'Untitled Draft');
+            opt.textContent = docs[id].name || 'Untitled Draft';
             if (id === currentDocId) opt.selected = true;
             docSelector.appendChild(opt);
         });
@@ -241,100 +204,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renameDocBtn.addEventListener('click', () => {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-        const oldName = docs[currentDocId]?.name || 'Untitled Draft';
-        const newName = prompt('Rename document:', oldName);
-        if (newName && newName !== oldName) {
+        const newName = prompt('Rename document:', docs[currentDocId]?.name || '');
+        if (newName) {
             docs[currentDocId].name = newName;
             localStorage.setItem('md_docs', JSON.stringify(docs));
             updateDocSelector();
-            updateStatus(`Renamed to "${newName}"`);
+            updateStatus('Renamed');
         }
     });
 
     deleteDocBtn.addEventListener('click', () => {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-        if (Object.keys(docs).length <= 1) {
-            alert('Cannot delete the last document.');
-            return;
-        }
-        if (confirm(`Permanently delete "${docs[currentDocId]?.name || 'this document'}"?`)) {
+        if (Object.keys(docs).length <= 1) return alert('Cannot delete last doc.');
+        if (confirm('Delete?')) {
             delete docs[currentDocId];
             localStorage.setItem('md_docs', JSON.stringify(docs));
             currentDocId = Object.keys(docs)[0];
             loadFromLocal();
             updatePreview();
-            updateStatus('Document deleted.');
         }
     });
 
     newDocBtn.addEventListener('click', () => {
-        const docName = prompt('Enter a name:', `Draft ${new Date().toLocaleTimeString()}`);
-        if (docName === null) return;
-        const newId = 'doc_' + Date.now();
+        const name = prompt('Name:');
+        if (name === null) return;
+        const id = 'doc_' + Date.now();
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-        docs[newId] = { id: newId, name: docName || 'Untitled Draft', markdown: '', lastSaved: new Date().toISOString() };
+        docs[id] = { id, name: name || 'Untitled', markdown: '', lastSaved: new Date().toISOString() };
         localStorage.setItem('md_docs', JSON.stringify(docs));
-        currentDocId = newId;
+        currentDocId = id;
         loadFromLocal();
         updatePreview();
     });
 
-    /**
-     * File Actions
-     */
     function handleFile(file) {
         if (!file || !file.name.endsWith('.md')) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            editor.setValue(e.target.result);
-            updatePreview();
-        };
-        reader.readAsText(file);
+        const r = new FileReader();
+        r.onload = (e) => { editor.setValue(e.target.result); updatePreview(); };
+        r.readAsText(file);
     }
     uploadBtn.addEventListener('click', () => fileUpload.click());
     fileUpload.addEventListener('change', (e) => handleFile(e.target.files[0]));
-
     downloadMDBtn.addEventListener('click', () => {
-        const blob = new Blob([editor.getValue()], { type: 'text/markdown' });
+        const b = new Blob([editor.getValue()], { type: 'text/markdown' });
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = getExportFilename('md');
+        a.href = URL.createObjectURL(b);
+        a.download = (docs[currentDocId]?.name || 'doc').toLowerCase() + '.md';
         a.click();
     });
 
     editorPanel.addEventListener('dragover', (e) => { e.preventDefault(); editorPanel.classList.add('drag-over'); });
     editorPanel.addEventListener('dragleave', () => editorPanel.classList.remove('drag-over'));
     editorPanel.addEventListener('drop', (e) => {
-        e.preventDefault();
-        editorPanel.classList.remove('drag-over');
+        e.preventDefault(); editorPanel.classList.remove('drag-over');
         if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
     });
 
     async function loadExample() {
-        try {
-            const response = await fetch('/api/example');
-            if (response.ok) {
-                const text = await response.text();
-                editor.setValue(text);
-                updatePreview();
-            }
-        } catch (e) {}
+        const res = await fetch('/api/example');
+        if (res.ok) { editor.setValue(await res.text()); updatePreview(); }
     }
 
-    if (Object.keys(JSON.parse(localStorage.getItem('md_docs') || '{}')).length === 0) {
-        loadExample();
-    } else {
-        loadFromLocal();
-        updatePreview();
-    }
+    if (Object.keys(JSON.parse(localStorage.getItem('md_docs') || '{}')).length === 0) loadExample();
+    else { loadFromLocal(); updatePreview(); }
 
-    loadExampleBtn.addEventListener('click', () => { if (confirm('Restore example?')) loadExample(); });
-    clearEditorBtn.addEventListener('click', () => {
-        if (confirm('Clear everything?')) {
-            editor.setValue('');
-            updatePreview();
-        }
-    });
+    loadExampleBtn.addEventListener('click', () => { if (confirm('Restore?')) loadExample(); });
+    clearEditorBtn.addEventListener('click', () => { if (confirm('Clear?')) { editor.setValue(''); updatePreview(); } });
 
     async function requestPDF() {
         const markdown = editor.getValue().trim();
@@ -345,104 +280,52 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         try {
             loadingSpinner.style.display = 'block';
-            const response = await fetch('/api/convert', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ markdownContent: markdown, configOptions: config }) });
-            if (!response.ok) throw new Error();
-            return await response.blob();
-        } catch (e) {
-            updateStatus('Error generating PDF.', true);
-            return null;
-        } finally {
-            loadingSpinner.style.display = 'none';
-        }
+            const res = await fetch('/api/convert', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ markdownContent: markdown, configOptions: config }) });
+            return res.ok ? await res.blob() : null;
+        } catch (e) { return null; } finally { loadingSpinner.style.display = 'none'; }
     }
 
     async function updatePreview() {
-        // ALWAYS update Web Preview instantly
         updateWebPreview();
-
-        // PDF Preview logic
         if (currentPreviewMode === 'pdf') {
-            const markdown = editor.getValue().trim();
-            if (!markdown) {
-                pdfPreview.style.display = 'none';
-                previewPlaceholder.style.display = 'block';
-                return;
-            }
-            updateStatus('Updating PDF...');
             const blob = await requestPDF();
-            if (blob) {
-                pdfPreview.src = window.URL.createObjectURL(blob);
-                pdfPreview.style.display = 'block';
-                previewPlaceholder.style.display = 'none';
-                updateStatus('PDF updated!');
-            }
+            if (blob) { pdfPreview.src = URL.createObjectURL(blob); pdfPreview.style.display = 'block'; previewPlaceholder.style.display = 'none'; }
         }
     }
 
     convertBtn.addEventListener('click', async () => {
-        updateStatus('Generating PDF...');
         const blob = await requestPDF();
-        if (blob) {
-            const a = document.createElement('a');
-            a.href = window.URL.createObjectURL(blob);
-            a.download = getExportFilename('pdf');
-            a.click();
-            updateStatus('Download started!');
-        }
+        if (blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'doc.pdf'; a.click(); }
     });
 
-    previewBtn.addEventListener('click', () => {
-        switchPreviewMode('pdf');
-        updatePreview();
-    });
+    previewBtn.addEventListener('click', () => { switchPreviewMode('pdf'); updatePreview(); });
 
     function triggerAutoUpdate() {
-        // Web Preview is triggered immediately on every keystroke
         updateWebPreview();
         saveToLocal();
-
-        // PDF Auto-update only if enabled and in PDF mode
         if (!autoUpdateToggle.checked) return;
-        
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            if (currentPreviewMode === 'pdf') {
-                updatePreview();
-            }
-        }, parseInt(updateDelaySelect.value));
+        debounceTimer = setTimeout(() => { if (currentPreviewMode === 'pdf') updatePreview(); }, parseInt(updateDelaySelect.value));
     }
 
-    editor.on('change', () => { triggerAutoUpdate(); });
-    const settingInputs = [pageFormat, showHeader, headerTitle, showPageNumbers, pageFormatStyle, showCopyright, copyrightText, autoPageBreak, breakH1, breakH2, breakH3];
-    settingInputs.forEach(input => {
-        input.addEventListener((input.type === 'text' ? 'input' : 'change'), () => { triggerAutoUpdate(); });
+    editor.on('change', triggerAutoUpdate);
+    [pageFormat, showHeader, headerTitle, showPageNumbers, pageFormatStyle, showCopyright, copyrightText, autoPageBreak, breakH1, breakH2, breakH3].forEach(i => {
+        i.addEventListener(i.type === 'text' ? 'input' : 'change', triggerAutoUpdate);
     });
 
     function updateStatus(text, isError = false) {
-        statusMsg.textContent = text;
-        statusMsg.classList.toggle('error', isError);
-        statusMsg.style.transform = 'scale(1.05)';
-        setTimeout(() => { statusMsg.style.transform = 'scale(1)'; }, 200);
+        statusMsg.textContent = text; statusMsg.classList.toggle('error', isError);
+        statusMsg.style.transform = 'scale(1.05)'; setTimeout(() => { statusMsg.style.transform = 'scale(1)'; }, 200);
     }
 
-    const zoomButtons = document.querySelectorAll('.zoom-btn');
-    zoomButtons.forEach(btn => {
+    document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const size = btn.dataset.size;
-            zoomButtons.forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const target = currentPreviewMode === 'web' ? webPreview : pdfPreview;
-            if (size === 'fit') {
-                target.style.width = '100%';
-                target.style.transform = 'scale(1)';
-            } else {
-                const scale = parseInt(size) / 100;
-                target.style.width = (100 / scale) + '%';
-                target.style.transform = `scale(${scale})`;
-            }
+            if (btn.dataset.size === 'fit') { target.style.width = '100%'; target.style.transform = 'scale(1)'; }
+            else { const s = parseInt(btn.dataset.size) / 100; target.style.width = (100 / s) + '%'; target.style.transform = `scale(${s})`; }
         });
     });
-    
-    // Initial Mode
     switchPreviewMode('web');
 });
