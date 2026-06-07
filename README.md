@@ -1,67 +1,62 @@
-# Elegant Markdown to PDF
+# 🚀 Elegant Markdown to PDF - Professional Writing Station
 
-A professional Markdown to PDF converter with a focus on clean typography, precise layout control, and unbreakable pagination. Now available as both a CLI tool and a Web Service!
+A high-end Markdown to PDF converter that transforms simple text into professional, polished documents. Beyond a simple converter, this is a full-featured web-based writing station designed for resumes, technical manuals, and academic papers.
 
-## 🌟 Key Features
+## 🌟 Superpowers
 
-- **Web Interface**: Modern UI with real-time preview and full configuration controls.
-- **Professional Layouts**: Built-in support for side-by-side columns and data tables.
-- **Smart Pagination**: Automatically prevents awkward page breaks.
-- **Docker Ready**: Easy deployment to any Linux VM or Cloud platform.
+- **🛠️ Document Library**: Manage multiple drafts directly in your browser. Rename, switch, or delete documents with ease.
+- **☁️ Zero-Loss Persistence**: Every keystroke is auto-saved to your browser's local storage. Never lose your work again.
+- **📐 Technical Excellence**:
+    - **KaTeX Support**: Render beautiful LaTeX math formulas (e.g., `$$ E=mc^2 $$`).
+    - **Mermaid Diagrams**: Create flowcharts, sequence diagrams, and Gantt charts directly in Markdown.
+- **⚡ Pro UI/UX**:
+    - **Live Preview**: Near-instant PDF rendering as you type.
+    - **Smart Zoom**: "Fit to width" or fixed scale preview modes.
+    - **Custom Styling**: Support for standard `<style>` tags and HTML/CSS layouts.
+    - **Drag & Drop**: Simply drop a `.md` file into the editor to load it.
+- **📑 Smart Export**: Automatically names your PDF/Markdown files based on your document name or first H1 header.
 
-## 📄 Sample Output
+## 🖥️ Web Interface
 
-Check out the [example.pdf](example.pdf) to see the professional layout in action.
+Designed for a focused writing experience:
+- **Left**: Markdown Editor with syntax highlighting.
+- **Middle**: Real-time professional PDF viewer.
+- **Right**: Granular control over headers, footers, pagination, and page formats (A4, Letter, Legal).
 
-## 🛠️ Installation & Local Run
+## 🐳 Docker & VM Deployment (Recommended)
 
-Ensure you have [Node.js](https://nodejs.org/) installed:
+This tool is production-ready. The easiest way to deploy is using Docker, which handles all Chrome/Puppeteer dependencies automatically.
 
+### One-Click Update (VM)
+We provide a dedicated deployment script for easy updates:
 ```bash
-npm install
-npm start # Starts the web server at http://localhost:3000
+git pull
+chmod +x deploy.sh
+./deploy.sh
 ```
 
-## 🐳 Docker Deployment (Recommended for VM)
-
-This tool is Docker-ready. This is the easiest way to deploy to your Linux VM as it handles all Chrome dependencies automatically.
-
-### 1. Build the image
+### Manual Docker Run
 ```bash
 docker build -t elegant-md-pdf .
+docker run -d -p 3000:3000 --name md-pdf-service --restart unless-stopped elegant-md-pdf
 ```
 
-### 2. Run the container
-```bash
-docker run -d -p 3000:3000 --name md-pdf-service elegant-md-pdf
-```
-Your service will be available at `http://<your-vm-ip>:3000`.
+## 🛠️ Local Development
 
-## 🚀 CLI Usage
+1. Install dependencies: `npm install`
+2. Start the server: `npm start`
+3. Access at `http://localhost:3000`
 
-### Manual Conversion
-```bash
-npm run convert <your-file.md>
-```
+## 🚀 Pro Tips & Shortcuts
 
-### Global Installation
-```bash
-npm install -g .
-mark-pdf <your-file.md>
-```
+- **Manual Page Break**: Use `<div class="page-break"></div>` to force a new page.
+- **Columns**: Use `flex-container` and `flex-item` classes for side-by-side layouts.
+- **Shortcuts**:
+    - `Ctrl + S`: Quick Download PDF
+    - `Ctrl + P`: Force Refresh Preview
 
 ## 🎨 Customization
-
-### Centralized Configuration (`config.js`)
-Use `config.js` to tweak settings with English comments support.
-
-| Section | Key | Description |
-| :--- | :--- | :--- |
-| **pagination** | `enable_auto_page_break` | Master switch. |
-| | `break_before_h1/h2/h3` | Independent heading toggles. |
-| | `page_number_format` | `"simple"`, `"slash"`, or `"page_of"`. |
-| **header_footer** | `show_header` | Toggle document header. |
-| | `show_copyright` | Toggle bottom-left text. |
+You can tweak global defaults in `config.js` or inject styles directly into your document using `<style>` tags at the top of your Markdown.
 
 ## 📜 License
 MIT
