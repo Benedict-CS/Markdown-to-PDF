@@ -249,7 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
             footerRightEnable: elements.footerRightEnable.checked,
             pageFormatStyle: elements.pageFormatStyle.value,
             autoPageBreak: elements.autoPageBreak.checked,
-            breakH1: elements.breakH1.checked
+            breakH1: elements.breakH1.checked,
+            breakH2: elements.breakH2.checked,
+            breakH3: elements.breakH3.checked,
+            autoUpdate: elements.autoUpdate.checked
         };
         localStorage.setItem('md_pdf_settings', JSON.stringify(settings));
 
@@ -264,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadFromLocal() {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
         const doc = docs[currentDocId];
-        if (doc) editor.setValue(doc.markdown || '');
+        if (doc && editor) editor.setValue(doc.markdown || '');
 
         const saved = localStorage.getItem('md_pdf_settings');
         if (saved) {
@@ -283,6 +286,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.pageFormatStyle.value = d.pageFormatStyle || 'page_of';
                 elements.autoPageBreak.checked = d.autoPageBreak ?? true;
                 elements.breakH1.checked = d.breakH1 ?? false;
+                elements.breakH2.checked = d.breakH2 ?? false;
+                elements.breakH3.checked = d.breakH3 ?? false;
+                elements.autoUpdate.checked = d.autoUpdate ?? true;
             } catch(e) {}
         }
         updateDocSelector();
