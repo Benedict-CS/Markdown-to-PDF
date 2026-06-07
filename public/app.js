@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Core State
+    // 1. State
     let editor = null;
     let currentPreviewMode = 'web';
     let currentDocId = 'current';
@@ -34,25 +34,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Editor Init
     editor = CodeMirror.fromTextArea(get('markdown-input'), {
-        mode: 'markdown', 
-        lineNumbers: true, 
-        theme: 'default', 
-        lineWrapping: true
+        mode: 'markdown', lineNumbers: true, theme: 'default', lineWrapping: true
     });
-    
-    editor.on('change', () => {
-        console.log("[LiveUpdate] Editor changed");
-        triggerAutoUpdate();
-    });
+    editor.on('change', () => triggerAutoUpdate());
 
     // 4. Functions
     async function updateWebPreview() {
         if (!editor) return;
         const md = editor.getValue();
-        if (!md) { 
-            elements.webPreview.innerHTML = '<div style="color:#aaa; text-align:center; margin-top:2rem;">Start typing...</div>'; 
-            return; 
-        }
+        if (!md) { elements.webPreview.innerHTML = '<div style="color:#aaa; text-align:center; margin-top:2rem;">Start writing...</div>'; return; }
         try {
             const html = (typeof marked.parse === 'function') ? marked.parse(md) : marked(md);
             elements.webPreview.innerHTML = html;
@@ -69,10 +59,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const md = editor.getValue().trim();
         if (!md) return null;
 
+        // Variables Processing
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        const docName = docs[currentDocId]?.name || 'Untitled';
         const now = new Date();
         const today = now.toISOString().split('T')[0];
         const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-        const processText = (str) => (str || '').replace(/{date}/g, today).replace(/{time}/g, time);
+        
+        const processText = (str) => (str || '')
+            .replace(/{title}/g, docName)
+            .replace(/{date}/g, today)
+            .replace(/{time}/g, time);
 
         const config = {
             pagination: { 
@@ -102,17 +99,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!res.ok) throw new Error("Server error");
             return await res.blob();
-        } catch (e) { 
-            console.error("PDF Request failed:", e);
-            return null; 
-        } finally { 
-            elements.loadingSpinner.style.display = 'none'; 
-        }
+        } catch (e) { console.error("PDF Request failed:", e); return null; }
+        finally { elements.loadingSpinner.style.display = 'none'; }
     }
 
     async function updatePreview(force = false) {
         if (isUpdating) { needsUpdate = true; return; }
-        
         updateWebPreview();
         if (currentPreviewMode !== 'pdf' && !force) return;
 
@@ -123,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (blob) {
                 if (currentPdfBlobUrl) URL.revokeObjectURL(currentPdfBlobUrl);
                 currentPdfBlobUrl = URL.createObjectURL(blob);
-                
                 elements.pdfPreview.src = 'about:blank';
                 setTimeout(() => {
                     elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH';
@@ -153,13 +144,59 @@ document.addEventListener('DOMContentLoaded', () => {
             docs[currentDocId].lastSaved = new Date().toISOString();
             localStorage.setItem('md_docs', JSON.stringify(docs));
         }
+        // Save Settings
+        const settings = {
+            showHeader: get('show-header').checked,
+            headerLeftEnable: get('header-left-enable').checked,
+            headerLeftText: get('header-left-text').value,
+            headerRightEnable: get('header-right-enable').checked,
+            headerRightText: get('header-right-text').value,
+            showFooter: get('show-footer').checked,
+            footerLeftEnable: get('footer-left-enable').checked,
+            footerLeftText: get('footer-left-text').value,
+            footerRightEnable: get('footer-right-enable').checked,
+            pageFormatStyle: get('page-format-style').value,
+            autoPageBreak: get('auto-page-break').checked,
+            breakH1: get('break-h1').checked,
+            breakH2: get('break-h2').checked,
+            breakH3: get('break-h3').checked,
+            autoUpdate: elements.autoUpdate.checked
+        };
+        localStorage.setItem('md_pdf_settings_full', JSON.stringify(settings));
         
         elements.statusMsg.classList.add('saved');
         elements.statusMsg.textContent = 'Saved';
-        setTimeout(() => {
-            elements.statusMsg.classList.remove('saved');
-            elements.statusMsg.textContent = 'Ready';
-        }, 1000);
+        setTimeout(() => { elements.statusMsg.classList.remove('saved'); elements.statusMsg.textContent = 'Ready'; }, 1000);
+    }
+
+    function loadFromLocal() {
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        const doc = docs[currentDocId];
+        if (doc) editor.setValue(doc.markdown || '');
+
+        const saved = localStorage.getItem('md_pdf_settings_full');
+        if (saved) {
+            try {
+                const d = JSON.parse(saved);
+                if (get('show-header')) get('show-header').checked = d.showHeader ?? true;
+                if (get('header-left-enable')) get('header-left-enable').checked = d.headerLeftEnable ?? true;
+                if (get('header-left-text')) get('header-left-text').value = d.headerLeftText || '{title}';
+                if (get('header-right-enable')) get('header-right-enable').checked = d.headerRightEnable ?? true;
+                if (get('header-right-text')) get('header-right-text').value = d.headerRightText || '{date}';
+                if (get('show-footer')) get('show-footer').checked = d.showFooter ?? true;
+                if (get('footer-left-enable')) get('footer-left-enable').checked = d.footerLeftEnable ?? true;
+                if (get('footer-left-text')) get('footer-left-text').value = d.footerLeftText || '© 2026 All Rights Reserved';
+                if (get('footer-right-enable')) get('footer-right-enable').checked = d.footerRightEnable ?? true;
+                if (get('page-format-style')) get('page-format-style').value = d.pageFormatStyle || 'page_of';
+                if (get('auto-page-break')) get('auto-page-break').checked = d.autoPageBreak ?? true;
+                if (get('break-h1')) get('break-h1').checked = d.breakH1 ?? false;
+                if (get('break-h2')) get('break-h2').checked = d.breakH2 ?? false;
+                if (get('break-h3')) get('break-h3').checked = d.breakH3 ?? false;
+                if (elements.autoUpdate) elements.autoUpdate.checked = d.autoUpdate ?? true;
+            } catch(e) {}
+        }
+        updateDocSelector();
+        return !!doc;
     }
 
     function updateDocSelector() {
@@ -192,10 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!elements.pdfPreview || !elements.webPreview) return;
         elements.webPreview.style.width = '100%';
         elements.webPreview.style.margin = '0';
-        elements.webPreview.style.boxShadow = 'none';
         elements.pdfPreview.style.width = '100%';
         elements.pdfPreview.style.margin = '0';
-        elements.pdfPreview.style.boxShadow = 'none';
     }
 
     function resetPdfPreview() {
@@ -206,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         needsUpdate = false;
     }
 
-    // 5. Explicit Event Binding - ALL SYSTEMS
+    // 5. Explicit Binding
     elements.modeWebBtn.onclick = () => switchMode('web');
     elements.modePdfBtn.onclick = () => switchMode('pdf');
     elements.previewBtn.onclick = () => updatePreview(true);
@@ -221,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Doc Management
     elements.docSelector.onchange = (e) => {
         currentDocId = e.target.value;
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
@@ -268,14 +302,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Toolbar Actions
     elements.uploadBtn.onclick = () => elements.fileUpload.click();
     elements.fileUpload.onchange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => { editor.setValue(ev.target.result); resetPdfPreview(); updatePreview(); };
-        reader.readAsText(file);
+        const r = new FileReader();
+        r.onload = (ev) => { editor.setValue(ev.target.result); resetPdfPreview(); updatePreview(); };
+        r.readAsText(file);
     };
     elements.downloadMDBtn.onclick = () => {
         const b = new Blob([editor.getValue()], { type: 'text/markdown' });
@@ -286,32 +319,15 @@ document.addEventListener('DOMContentLoaded', () => {
         a.click();
     };
     elements.loadExampleBtn.onclick = () => {
-        if (confirm('Restore example?')) {
-            fetch('/api/example').then(r => r.text()).then(t => { 
-                editor.setValue(t); 
-                resetPdfPreview(); 
-                updatePreview(); 
-            });
-        }
+        if (confirm('Restore example?')) fetch('/api/example').then(r => r.text()).then(t => { editor.setValue(t); resetPdfPreview(); updatePreview(); });
     };
-    elements.clearEditorBtn.onclick = () => { 
-        if (confirm('Clear editor?')) { 
-            editor.setValue(''); 
-            resetPdfPreview(); 
-            updatePreview(); 
-        } 
-    };
+    elements.clearEditorBtn.onclick = () => { if (confirm('Clear editor?')) { editor.setValue(''); resetPdfPreview(); updatePreview(); } };
 
-    // Settings Binding
     document.querySelectorAll('.settings-content input, .settings-content select, #auto-update').forEach(el => {
         const ev = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
-        el.addEventListener(ev, () => {
-            console.log("[Setting] Changed:", el.id);
-            triggerAutoUpdate();
-        });
+        el.addEventListener(ev, () => triggerAutoUpdate());
     });
 
-    // Zoom
     document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
@@ -327,8 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedDocs = JSON.parse(localStorage.getItem('md_docs') || '{}');
     if (Object.keys(savedDocs).length > 0) {
         currentDocId = Object.keys(savedDocs)[0];
-        editor.setValue(savedDocs[currentDocId].markdown || '');
-        updateDocSelector();
+        loadFromLocal();
     } else {
         fetch('/api/example').then(r => r.text()).then(t => { 
             editor.setValue(t); 
