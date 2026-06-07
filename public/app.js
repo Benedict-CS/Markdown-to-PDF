@@ -11,13 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const cssEditor = CodeMirror.fromTextArea(document.getElementById('custom-css-input'), {
-        mode: 'css',
-        lineNumbers: false,
-        theme: 'default',
-        lineWrapping: true,
-    });
-
     // Mermaid Initialization
     mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
@@ -119,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
         docSelector.innerHTML = '';
         
-        // Ensure currentDocId exists in selector
         if (!docs[currentDocId]) {
             docs[currentDocId] = { id: currentDocId, name: currentDocId === 'current' ? 'Primary Draft' : 'Untitled Draft' };
         }
@@ -232,9 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Startup
-    if (!loadFromLocal()) {
+    const existingDocs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+    if (Object.keys(existingDocs).length === 0) {
         loadExample();
     } else {
+        loadFromLocal();
         updatePreview();
     }
 
@@ -245,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
     clearEditorBtn.addEventListener('click', () => {
         if (confirm('Clear everything?')) {
             editor.setValue('');
-            cssEditor.setValue('');
             updatePreview();
             updateStatus('Editor cleared.');
         }
@@ -256,7 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function requestPDF() {
         const markdown = editor.getValue().trim();
-        const customCss = cssEditor.getValue();
         if (!markdown) return null;
 
         const config = {
@@ -274,8 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 copyright_text: copyrightText.value,
                 show_page_numbers: showPageNumbers.checked,
                 page_number_format: pageFormatStyle.value
-            },
-            customCss: customCss
+            }
         };
 
         try {
@@ -333,7 +324,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     editor.on('change', () => { triggerAutoUpdate(); saveToLocal(); });
-    cssEditor.on('change', () => { triggerAutoUpdate(); saveToLocal(); });
 
     const settingInputs = [
         pageFormat, showHeader, headerTitle, 
