@@ -75,6 +75,30 @@ document.addEventListener('DOMContentLoaded', () => {
             breakH3: breakH3.checked
         };
         localStorage.setItem('md_pdf_settings', JSON.stringify(globalSettings));
+        
+        // Show saved indicator
+        statusMsg.classList.add('saved');
+        setTimeout(() => statusMsg.classList.remove('saved'), 1000);
+    }
+
+    /**
+     * Get a clean filename based on doc name or content
+     */
+    function getExportFilename(extension) {
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        let name = docs[currentDocId]?.name;
+        
+        if (!name || name === 'Primary Draft' || name === 'Untitled Draft') {
+            // Try to find first H1 in markdown
+            const match = editor.getValue().match(/^#\s+(.+)$/m);
+            if (match && match[1]) {
+                name = match[1].trim();
+            } else {
+                name = 'document';
+            }
+        }
+        
+        return name.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.' + extension;
     }
 
     /**
@@ -187,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'document.md';
+        a.download = getExportFilename('md');
         a.click();
         updateStatus('Markdown exported!');
     });
@@ -318,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'document.pdf';
+            a.download = getExportFilename('pdf');
             a.click();
             updateStatus('Download started!');
         }

@@ -398,9 +398,16 @@ body {
     transition: all 0.3s ease;
 }
 
-.status-pill.error {
-    background-color: #fff0f0;
-    color: #d73a49;
+.status-pill.saved {
+    background-color: #f0fff4;
+    color: #28a745;
+    border-color: rgba(40, 167, 69, 0.1);
+}
+
+.status-pill.saved::before {
+    content: "● ";
+    font-size: 0.6rem;
+    vertical-align: middle;
 }
 
 /* Responsive Design (RWD) */
