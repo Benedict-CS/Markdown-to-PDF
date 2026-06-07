@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="ui.css">
     <!-- CodeMirror for Syntax Highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/markdown/markdown.min.js"></script>
 </head>
@@ -36,67 +35,68 @@
 
         <section class="controls-panel">
             <div class="panel-header">Settings</div>
-            
-            <div class="control-group">
-                <label>Theme Accent Color</label>
-                <input type="color" id="accent-color" value="#0366d6">
-            </div>
-
-            <div class="control-group">
-                <label>Page Format</label>
-                <select id="page-format">
-                    <option value="A4" selected>A4</option>
-                    <option value="Letter">Letter</option>
-                </select>
-            </div>
-
-            <div class="control-group section-title">Header / Footer</div>
-            
-            <div class="control-group checkbox">
-                <input type="checkbox" id="show-header">
-                <label for="show-header">Show Header</label>
-            </div>
-            <div class="control-group">
-                <input type="text" id="header-title" placeholder="Header Title" value="How to use markdown">
-            </div>
-
-            <div class="control-group checkbox">
-                <input type="checkbox" id="show-page-numbers" checked>
-                <label for="show-page-numbers">Show Page Numbers</label>
-            </div>
-            <div class="control-group">
-                <select id="page-format-style">
-                    <option value="simple" selected>Simple (1)</option>
-                    <option value="page_of">Page of (Page 1 of 5)</option>
-                    <option value="slash">Slash (1 / 5)</option>
-                </select>
-            </div>
-
-            <div class="control-group checkbox">
-                <input type="checkbox" id="show-copyright" checked>
-                <label for="show-copyright">Show Copyright</label>
-            </div>
-            <div class="control-group">
-                <input type="text" id="copyright-text" value="© 2026 All Rights Reserved">
-            </div>
-
-            <div class="control-group section-title">Pagination</div>
-            <div class="control-group checkbox">
-                <input type="checkbox" id="auto-page-break" checked>
-                <label for="auto-page-break">Enable Auto Break</label>
-            </div>
-            <div class="sub-controls">
-                <div class="control-group checkbox">
-                    <input type="checkbox" id="break-h1">
-                    <label for="break-h1">Break before H1</label>
+            <div class="settings-content">
+                <div class="control-group">
+                    <label>Theme Accent Color</label>
+                    <input type="color" id="accent-color" value="#0366d6">
                 </div>
-                <div class="control-group checkbox">
-                    <input type="checkbox" id="break-h2" checked>
-                    <label for="break-h2">Break before H2</label>
-                </div>
-            </div>
 
-            <div id="status-message" class="status">Ready</div>
+                <div class="control-group">
+                    <label>Page Format</label>
+                    <select id="page-format">
+                        <option value="A4" selected>A4</option>
+                        <option value="Letter">Letter</option>
+                    </select>
+                </div>
+
+                <div class="section-title">Header / Footer</div>
+                
+                <div class="control-group checkbox">
+                    <input type="checkbox" id="show-header">
+                    <label for="show-header">Show Header</label>
+                </div>
+                <div class="control-group">
+                    <input type="text" id="header-title" placeholder="Header Title" value="How to use markdown">
+                </div>
+
+                <div class="control-group checkbox">
+                    <input type="checkbox" id="show-page-numbers" checked>
+                    <label for="show-page-numbers">Show Page Numbers</label>
+                </div>
+                <div class="control-group">
+                    <select id="page-format-style">
+                        <option value="simple" selected>Simple (1)</option>
+                        <option value="page_of">Page of (Page 1 of 5)</option>
+                        <option value="slash">Slash (1 / 5)</option>
+                    </select>
+                </div>
+
+                <div class="control-group checkbox">
+                    <input type="checkbox" id="show-copyright" checked>
+                    <label for="show-copyright">Show Copyright</label>
+                </div>
+                <div class="control-group">
+                    <input type="text" id="copyright-text" value="© 2026 All Rights Reserved">
+                </div>
+
+                <div class="section-title">Pagination</div>
+                <div class="control-group checkbox">
+                    <input type="checkbox" id="auto-page-break" checked>
+                    <label for="auto-page-break">Enable Auto Break</label>
+                </div>
+                <div class="sub-controls">
+                    <div class="control-group checkbox">
+                        <input type="checkbox" id="break-h1">
+                        <label for="break-h1">Break before H1</label>
+                    </div>
+                    <div class="control-group checkbox">
+                        <input type="checkbox" id="break-h2" checked>
+                        <label for="break-h2">Break before H2</label>
+                    </div>
+                </div>
+
+                <div id="status-message" class="status">Ready</div>
+            </div>
         </section>
     </main>
 

@@ -4,109 +4,127 @@
     padding: 0;
 }
 
+:root {
+    --header-height: 60px;
+    --sidebar-width: 300px;
+    --border-color: #e1e4e8;
+    --bg-light: #f6f8fa;
+    --accent-blue: #0366d6;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background-color: #f4f7f9;
-    color: #333;
+    background-color: #fff;
+    color: #24292e;
     height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
+/* Header */
 .app-header {
+    height: var(--header-height);
     background-color: #fff;
-    padding: 0.8rem 1.5rem;
+    padding: 0 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    z-index: 100;
+    border-bottom: 1px solid var(--border-color);
+    z-index: 1000;
 }
 
 .logo {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .actions {
     display: flex;
-    gap: 0.8rem;
+    gap: 0.75rem;
 }
 
 .btn-primary, .btn-secondary {
-    border: none;
+    border: 1px solid rgba(27,31,35,0.15);
     padding: 0.5rem 1rem;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.2s;
+    font-size: 0.85rem;
+    transition: 0.2s cubic-bezier(0.3, 0, 0.5, 1);
 }
 
-.btn-primary { background-color: #0366d6; color: #fff; }
+.btn-primary { 
+    background-color: var(--accent-blue); 
+    color: #fff;
+}
 .btn-primary:hover { background-color: #0255b3; }
 
-.btn-secondary { background-color: #e1e4e8; color: #24292e; }
-.btn-secondary:hover { background-color: #d1d5da; }
-
-.btn-primary:disabled, .btn-secondary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.btn-secondary { 
+    background-color: var(--bg-light); 
+    color: #24292e;
 }
+.btn-secondary:hover { background-color: #ebf0f2; }
 
+/* Layout Container */
 .app-container {
     flex: 1;
     display: flex;
+    flex-direction: row;
     overflow: hidden;
 }
 
+/* Panels */
 .editor-panel, .preview-panel {
-    flex: 2;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid #e1e4e8;
-    background: #fff;
+    border-right: 1px solid var(--border-color);
+    min-width: 0; /* Important for flex-shrink */
 }
 
 .controls-panel {
-    flex: 1;
-    padding: 1.2rem;
-    background-color: #fafbfc;
-    overflow-y: auto;
+    width: var(--sidebar-width);
+    background-color: var(--bg-light);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
 }
 
 .panel-header {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
-    color: #6a737d;
-    padding: 0.6rem 1rem;
-    background-color: #f6f8fa;
-    border-bottom: 1px solid #e1e4e8;
+    color: #586069;
+    padding: 0.75rem 1rem;
+    background-color: #fff;
+    border-bottom: 1px solid var(--border-color);
 }
 
-/* CodeMirror Override */
+/* CodeMirror Styling */
 .CodeMirror {
     flex: 1;
     height: auto;
     font-family: "SFMono-Regular", Consolas, monospace;
     font-size: 14px;
-    line-height: 1.6;
 }
 
+/* Preview */
 #preview-container {
     flex: 1;
+    background-color: #525659;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #525659; /* PDF viewer grey */
     position: relative;
 }
 
 .preview-placeholder {
-    color: #ccc;
-    font-size: 0.9rem;
+    color: #adb5bd;
+    text-align: center;
 }
 
 #pdf-preview {
@@ -115,8 +133,15 @@ body {
     border: none;
 }
 
+/* Settings Controls */
+.settings-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem;
+}
+
 .control-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
 }
 
 .section-title {
@@ -124,49 +149,98 @@ body {
     font-size: 0.8rem;
     font-weight: 700;
     color: #24292e;
-    border-bottom: 1px solid #e1e4e8;
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 0.3rem;
+    margin-bottom: 0.75rem;
 }
 
 .control-group label {
     display: block;
     font-size: 0.8rem;
     font-weight: 600;
-    margin-bottom: 0.3rem;
-    color: #555;
+    margin-bottom: 0.4rem;
 }
 
 .control-group input[type="text"],
 .control-group select {
     width: 100%;
-    padding: 0.4rem;
-    border: 1px solid #d1d5da;
-    border-radius: 4px;
+    padding: 0.45rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
     font-size: 0.85rem;
+    background-color: #fff;
 }
 
 .control-group.checkbox {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    cursor: pointer;
 }
 
-.control-group.checkbox label { margin-bottom: 0; }
+.control-group.checkbox input {
+    cursor: pointer;
+}
 
 .sub-controls {
-    padding-left: 1.2rem;
-    margin-top: 0.3rem;
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+    border-left: 2px solid var(--border-color);
 }
 
 .status {
-    margin-top: 1.5rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    background-color: #dbedff;
+    color: #0366d6;
     font-size: 0.8rem;
-    color: #666;
-    padding: 0.6rem;
-    border-radius: 4px;
-    background-color: #f1f8ff;
+    margin-top: 1rem;
     text-align: center;
 }
 
-.status.error { background-color: #ffeef0; color: #d73a49; }
+.status.error {
+    background-color: #ffeef0;
+    color: #d73a49;
+}
+
+/* Responsive Design (RWD) */
+@media (max-width: 1200px) {
+    .app-container {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    
+    .editor-panel, .preview-panel, .controls-panel {
+        width: 100%;
+        height: auto;
+        flex: none;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .CodeMirror {
+        height: 350px;
+    }
+
+    #preview-container {
+        height: 500px;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-header {
+        flex-direction: column;
+        height: auto;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .actions {
+        width: 100%;
+    }
+
+    .btn-primary, .btn-secondary {
+        flex: 1;
+        text-align: center;
+    }
+}
