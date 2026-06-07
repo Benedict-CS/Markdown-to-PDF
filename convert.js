@@ -15,6 +15,24 @@ async function convert(input, options = {}) {
         const cssPath = path.resolve(__dirname, 'style.css');
         const baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
 
+        // Dynamic Pagination Styles
+        const isAutoBreak = options.pagination?.enable_auto_page_break !== false;
+        const breakH1 = isAutoBreak && options.pagination?.break_before_h1 ? 'always' : 'auto';
+        const breakH2 = isAutoBreak && options.pagination?.break_before_h2 ? 'always' : 'auto';
+        const breakH3 = isAutoBreak && options.pagination?.break_before_h3 ? 'always' : 'auto';
+
+        const dynamicCss = `
+            :root {
+                --h1-page-break: ${breakH1};
+                --h2-page-break: ${breakH2};
+                --h3-page-break: ${breakH3};
+            }
+            h1 { page-break-before: var(--h1-page-break) !important; }
+            h2 { page-break-before: var(--h2-page-break) !important; }
+            h3 { page-break-before: var(--h3-page-break) !important; }
+            h1:first-of-type, h2:first-of-type, h3:first-of-type { page-break-before: auto !important; }
+        `;
+
         // Configure PDF options
         const pdfOptions = {
             format: 'A4',
@@ -53,7 +71,7 @@ async function convert(input, options = {}) {
             { content: markdownContent },
             {
                 basedir: __dirname, // CRITICAL for local images
-                css: baseCss + '\n' + (options.customCss || ''),
+                css: baseCss + '\n' + dynamicCss + '\n' + (options.customCss || ''),
                 pdf_options: pdfOptions,
                 launch_options: {
                     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
