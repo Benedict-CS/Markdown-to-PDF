@@ -7,9 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isUpdating = false;
     let needsUpdate = false;
     let debounceTimer = null;
-    let currentZoom = '100'; // Default zoom state
 
-    // 2. DOM Elements
+    // 2. DOM Elements Mapping
     const get = (id) => document.getElementById(id);
     const elements = {
         pdfPreview: get('pdf-preview'),
@@ -27,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     editor.on('change', () => triggerAutoUpdate());
 
-    // 4. Logic Functions
+    // 4. Functions
     async function updateWebPreview() {
         const md = editor.getValue();
         if (!md) { elements.webPreview.innerHTML = '<div style="color:#aaa; text-align:center; margin-top:2rem;">Start typing...</div>'; return; }
@@ -92,14 +91,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const blob = await requestPDF();
             if (blob) {
                 if (currentPdfBlobUrl) URL.revokeObjectURL(currentPdfBlobUrl);
-                // Force FitH (Fit Horizontal) in PDF viewer
                 currentPdfBlobUrl = URL.createObjectURL(blob);
+                
+                // Force iframe refresh and fit
                 elements.pdfPreview.src = 'about:blank';
                 setTimeout(() => {
                     elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH';
                     elements.pdfPreview.style.display = 'block';
                     if (elements.previewPlaceholder) elements.previewPlaceholder.style.display = 'none';
-                    applyZoomStyles(); // Re-apply zoom to new iframe
+                    applyZoomStyles();
                 }, 50);
             }
         } finally {
@@ -140,19 +140,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyZoomStyles() {
-        [elements.webPreview, elements.pdfPreview].forEach(target => {
-            if (!target) return;
-            if (currentZoom === 'fit') {
-                target.style.width = '100%';
-                target.style.margin = '0';
-                target.style.boxShadow = 'none';
-            } else {
-                target.style.width = '210mm';
-                target.style.margin = '2rem auto';
-                target.style.boxShadow = '0 0 30px rgba(0,0,0,0.25)';
-                if (target === elements.pdfPreview) target.style.backgroundColor = '#fff';
-            }
-        });
+        if (!elements.pdfPreview || !elements.webPreview) return;
+        elements.webPreview.style.width = '100%';
+        elements.webPreview.style.margin = '0';
+        elements.webPreview.style.boxShadow = 'none';
+        elements.pdfPreview.style.width = '100%';
+        elements.pdfPreview.style.margin = '0';
+        elements.pdfPreview.style.boxShadow = 'none';
+
+        // Reset internal PDF zoom by re-setting src if needed
+        if (currentPreviewMode === 'pdf' && currentPdfBlobUrl && !elements.pdfPreview.src.includes('#view=FitH')) {
+            elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH';
+        }
     }
 
     // 5. Events
@@ -167,14 +166,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentZoom = btn.dataset.size;
-            applyZoomStyles();
+            // Force a hard refresh of the iframe to reset internal browser zoom
+            if (currentPreviewMode === 'pdf' && currentPdfBlobUrl) {
+                elements.pdfPreview.src = 'about:blank';
+                setTimeout(() => {
+                    elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH';
+                    applyZoomStyles();
+                }, 10);
+            } else {
+                applyZoomStyles();
+            }
         });
     });
 
-    // 6. Init Load
+    // 6. Init
     const savedDocs = JSON.parse(localStorage.getItem('md_docs') || '{}');
     if (Object.keys(savedDocs).length > 0) {
         currentDocId = Object.keys(savedDocs)[0];
@@ -182,20 +187,13 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         fetch('/api/example').then(r => r.text()).then(t => { 
             editor.setValue(t); 
-            // Ensure first doc has a name if empty
-            const initialDocs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-            if (Object.keys(initialDocs).length === 0) {
-                const id = 'doc_' + Date.now();
-                initialDocs[id] = { id, name: 'Primary Draft', markdown: t, lastSaved: new Date().toISOString() };
-                localStorage.setItem('md_docs', JSON.stringify(initialDocs));
-                currentDocId = id;
-            }
+            const id = 'doc_' + Date.now();
+            const docs = {}; docs[id] = { id, name: 'Primary Draft', markdown: t, lastSaved: new Date().toISOString() };
+            localStorage.setItem('md_docs', JSON.stringify(docs));
+            currentDocId = id;
         });
     }
     
-    // Initial Zoom Setup
-    const defaultZoomBtn = document.querySelector('.zoom-btn[data-size="100"]');
-    if (defaultZoomBtn) defaultZoomBtn.click();
-
+    applyZoomStyles();
     updatePreview();
 });
