@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let debounceTimer = null;
     let currentDocId = 'current';
     let currentPdfBlobUrl = null;
+    let isUpdating = false;
 
     /**
      * Preview Mode Switching
@@ -317,8 +318,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updatePreview() {
+        if (isUpdating) return;
+        clearTimeout(debounceTimer);
         updateWebPreview();
+        
         if (currentPreviewMode === 'pdf') {
+            isUpdating = true;
             const blob = await requestPDF();
             if (blob) { 
                 if (currentPdfBlobUrl) URL.revokeObjectURL(currentPdfBlobUrl);
@@ -327,6 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdfPreview.style.display = 'block'; 
                 previewPlaceholder.style.display = 'none'; 
             }
+            isUpdating = false;
         }
     }
 
@@ -335,7 +341,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'doc.pdf'; a.click(); }
     });
 
-    previewBtn.addEventListener('click', () => { switchPreviewMode('pdf'); });
+    previewBtn.addEventListener('click', () => { 
+        if (currentPreviewMode !== 'pdf') {
+            switchPreviewMode('pdf'); 
+        } else {
+            updatePreview();
+        }
+    });
 
     function triggerAutoUpdate() {
         updateWebPreview();
