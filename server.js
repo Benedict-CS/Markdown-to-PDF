@@ -8,9 +8,30 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/images', express.static(path.join(__dirname, 'images')));
+
+/**
+ * API Endpoint: Upload Image
+ */
+app.post('/api/upload', (req, res) => {
+    const { fileName, base64Data } = req.body;
+    if (!fileName || !base64Data) {
+        return res.status(400).json({ error: 'Missing file data' });
+    }
+
+    try {
+        const filePath = path.join(__dirname, 'images', fileName);
+        const buffer = Buffer.from(base64Data, 'base64');
+        fs.writeFileSync(filePath, buffer);
+        console.log(`[${new Date().toLocaleTimeString()}] 🖼️ Image uploaded: ${fileName}`);
+        res.json({ success: true, path: `./images/${fileName}` });
+    } catch (error) {
+        console.error('❌ Upload Error:', error);
+        res.status(500).json({ error: 'Failed to save image' });
+    }
+});
 
 /**
  * API Endpoint: Get Example Markdown

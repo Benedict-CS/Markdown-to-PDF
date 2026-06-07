@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. State Management
+    // 1. Core State
     let editor = null;
     let currentPreviewMode = 'web';
     let currentDocId = 'current';
@@ -22,8 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
         renameDocBtn: get('rename-doc-btn'),
         deleteDocBtn: get('delete-doc-btn'),
         uploadBtn: get('upload-btn'),
+        imageBtn: get('image-btn'),
         downloadMDBtn: get('download-md-btn'),
         fileUpload: get('file-upload'),
+        imageUpload: get('image-upload'),
         loadExampleBtn: get('load-example-btn'),
         clearEditorBtn: get('clear-editor-btn'),
         modeWebBtn: get('mode-web-btn'),
@@ -32,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         convertBtn: get('convert-btn')
     };
 
-    // 3. Editor Initialization
+    // 3. Editor Init
     editor = CodeMirror.fromTextArea(get('markdown-input'), {
         mode: 'markdown', 
         lineNumbers: true, 
@@ -44,8 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         triggerAutoUpdate();
     });
 
-    // 4. Core Logic Functions
-
+    // 4. Functions
     async function updateWebPreview() {
         if (!editor) return;
         const md = editor.getValue();
@@ -54,12 +55,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return; 
         }
         try {
-            const options = { breaks: true, gfm: true };
-            const html = (typeof marked.parse === 'function') ? marked.parse(md, options) : marked(md, options);
+            const html = (typeof marked.parse === 'function') ? marked.parse(md) : marked(md);
             elements.webPreview.innerHTML = html;
         } catch (e) { elements.webPreview.innerHTML = md; }
 
-        // Local Image Path Resolving
+        // Local Image Path Fix
         elements.webPreview.querySelectorAll('img').forEach(img => {
             let src = img.getAttribute('src');
             if (src && src.startsWith('./images/')) img.src = src.substring(1);
@@ -71,17 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const md = editor.getValue().trim();
         if (!md) return null;
 
-        // Dynamic Variable Processing
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
         const docName = docs[currentDocId]?.name || 'Untitled';
         const now = new Date();
         const today = now.toISOString().split('T')[0];
         const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-        
-        const processText = (str) => (str || '')
-            .replace(/{title}/g, docName)
-            .replace(/{date}/g, today)
-            .replace(/{time}/g, time);
+        const processText = (str) => (str || '').replace(/{title}/g, docName).replace(/{date}/g, today).replace(/{time}/g, time);
 
         const config = {
             pagination: { 
@@ -121,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updatePreview(force = false) {
         if (isUpdating) { needsUpdate = true; return; }
-        
         updateWebPreview();
         if (currentPreviewMode !== 'pdf' && !force) return;
 
@@ -132,8 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (blob) {
                 if (currentPdfBlobUrl) URL.revokeObjectURL(currentPdfBlobUrl);
                 currentPdfBlobUrl = URL.createObjectURL(blob);
-                
-                // Force iframe refresh and fit
                 elements.pdfPreview.src = 'about:blank';
                 setTimeout(() => {
                     elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH';
@@ -164,62 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('md_docs', JSON.stringify(docs));
         }
         
-        // Settings Persistence
-        const settings = {
-            showHeader: get('show-header').checked,
-            headerLeftEnable: get('header-left-enable').checked,
-            headerLeftText: get('header-left-text').value,
-            headerRightEnable: get('header-right-enable').checked,
-            headerRightText: get('header-right-text').value,
-            showFooter: get('show-footer').checked,
-            footerLeftEnable: get('footer-left-enable').checked,
-            footerLeftText: get('footer-left-text').value,
-            footerRightEnable: get('footer-right-enable').checked,
-            pageFormatStyle: get('page-format-style').value,
-            autoPageBreak: get('auto-page-break').checked,
-            breakH1: get('break-h1').checked,
-            breakH2: get('break-h2').checked,
-            breakH3: get('break-h3').checked,
-            autoUpdate: elements.autoUpdate.checked
-        };
-        localStorage.setItem('md_pdf_settings_full', JSON.stringify(settings));
-
         elements.statusMsg.classList.add('saved');
         elements.statusMsg.textContent = 'Saved';
-        setTimeout(() => {
-            elements.statusMsg.classList.remove('saved');
-            elements.statusMsg.textContent = 'Ready';
-        }, 1000);
-    }
-
-    function loadFromLocal() {
-        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-        const doc = docs[currentDocId];
-        if (doc) editor.setValue(doc.markdown || '');
-
-        const saved = localStorage.getItem('md_pdf_settings_full');
-        if (saved) {
-            try {
-                const d = JSON.parse(saved);
-                if (get('show-header')) get('show-header').checked = d.showHeader ?? true;
-                if (get('header-left-enable')) get('header-left-enable').checked = d.headerLeftEnable ?? true;
-                if (get('header-left-text')) get('header-left-text').value = d.headerLeftText || '{title}';
-                if (get('header-right-enable')) get('header-right-enable').checked = d.headerRightEnable ?? true;
-                if (get('header-right-text')) get('header-right-text').value = d.headerRightText || '{date}';
-                if (get('show-footer')) get('show-footer').checked = d.showFooter ?? true;
-                if (get('footer-left-enable')) get('footer-left-enable').checked = d.footerLeftEnable ?? true;
-                if (get('footer-left-text')) get('footer-left-text').value = d.footerLeftText || '© 2026 All Rights Reserved';
-                if (get('footer-right-enable')) get('footer-right-enable').checked = d.footerRightEnable ?? true;
-                if (get('page-format-style')) get('page-format-style').value = d.pageFormatStyle || 'page_of';
-                if (get('auto-page-break')) get('auto-page-break').checked = d.autoPageBreak ?? true;
-                if (get('break-h1')) get('break-h1').checked = d.breakH1 ?? false;
-                if (get('break-h2')) get('break-h2').checked = d.breakH2 ?? false;
-                if (get('break-h3')) get('break-h3').checked = d.breakH3 ?? false;
-                if (elements.autoUpdate) elements.autoUpdate.checked = d.autoUpdate ?? true;
-            } catch(e) {}
-        }
-        updateDocSelector();
-        return !!doc;
+        setTimeout(() => { elements.statusMsg.classList.remove('saved'); elements.statusMsg.textContent = 'Ready'; }, 1000);
     }
 
     function updateDocSelector() {
@@ -264,8 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         needsUpdate = false;
     }
 
-    // 5. Explicit Event Bindings
-
+    // 5. Explicit Binding
     elements.modeWebBtn.onclick = () => switchMode('web');
     elements.modePdfBtn.onclick = () => switchMode('pdf');
     elements.previewBtn.onclick = () => updatePreview(true);
@@ -280,7 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Document Management
     elements.docSelector.onchange = (e) => {
         currentDocId = e.target.value;
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
@@ -336,6 +273,44 @@ document.addEventListener('DOMContentLoaded', () => {
         r.onload = (ev) => { editor.setValue(ev.target.result); resetPdfPreview(); updatePreview(); };
         r.readAsText(file);
     };
+
+    // --- IMAGE UPLOAD LOGIC ---
+    elements.imageBtn.onclick = () => elements.imageUpload.click();
+    elements.imageUpload.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const r = new FileReader();
+        r.onload = async (ev) => {
+            const base64Data = ev.target.result.split(',')[1];
+            const fileName = file.name.replace(/\s+/g, '_');
+            
+            try {
+                elements.loadingSpinner.style.display = 'block';
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fileName, base64Data })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const snippet = `\n![${file.name}](${data.path})\n`;
+                    editor.replaceSelection(snippet);
+                    triggerAutoUpdate();
+                } else {
+                    alert('Upload failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error('Image upload failed:', err);
+                alert('Server Error during image upload');
+            } finally {
+                elements.loadingSpinner.style.display = 'none';
+                elements.imageUpload.value = ''; // Reset input
+            }
+        };
+        r.readAsDataURL(file);
+    };
+
     elements.downloadMDBtn.onclick = () => {
         const b = new Blob([editor.getValue()], { type: 'text/markdown' });
         const a = document.createElement('a');
@@ -349,13 +324,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     elements.clearEditorBtn.onclick = () => { if (confirm('Clear editor?')) { editor.setValue(''); resetPdfPreview(); updatePreview(); } };
 
-    // Settings Binding (EVERY input/select)
     document.querySelectorAll('.settings-content input, .settings-content select, #auto-update').forEach(el => {
         const ev = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
         el.addEventListener(ev, () => triggerAutoUpdate());
     });
 
-    // Zoom Button (Fit)
     document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
@@ -367,11 +340,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 6. Initial Load
-    const initialDocs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-    if (Object.keys(initialDocs).length > 0) {
-        currentDocId = Object.keys(initialDocs)[0];
-        loadFromLocal();
+    // 6. Init
+    const savedDocs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+    if (Object.keys(savedDocs).length > 0) {
+        currentDocId = Object.keys(savedDocs)[0];
+        editor.setValue(savedDocs[currentDocId].markdown || '');
+        updateDocSelector();
     } else {
         fetch('/api/example').then(r => r.text()).then(t => { 
             editor.setValue(t); 
