@@ -245,9 +245,10 @@ document.addEventListener('DOMContentLoaded', () => {
     newDocBtn.addEventListener('click', () => {
         const name = prompt('Name:');
         if (name === null) return;
+        const docName = name || 'Untitled';
         const id = 'doc_' + Date.now();
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-        docs[id] = { id, name: name || 'Untitled', markdown: '', lastSaved: new Date().toISOString() };
+        docs[id] = { id, name: docName, markdown: `# ${docName}\n\nStart writing here...`, lastSaved: new Date().toISOString() };
         localStorage.setItem('md_docs', JSON.stringify(docs));
         currentDocId = id;
         loadFromLocal();
