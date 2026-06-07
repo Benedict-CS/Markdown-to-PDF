@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. State
+    // 1. State Management
     let editor = null;
     let currentPreviewMode = 'web';
     let currentDocId = 'current';
@@ -32,22 +32,34 @@ document.addEventListener('DOMContentLoaded', () => {
         convertBtn: get('convert-btn')
     };
 
-    // 3. Editor Init
+    // 3. Editor Initialization
     editor = CodeMirror.fromTextArea(get('markdown-input'), {
-        mode: 'markdown', lineNumbers: true, theme: 'default', lineWrapping: true
+        mode: 'markdown', 
+        lineNumbers: true, 
+        theme: 'default', 
+        lineWrapping: true
     });
-    editor.on('change', () => triggerAutoUpdate());
+    
+    editor.on('change', () => {
+        triggerAutoUpdate();
+    });
 
-    // 4. Functions
+    // 4. Core Logic Functions
+
     async function updateWebPreview() {
         if (!editor) return;
         const md = editor.getValue();
-        if (!md) { elements.webPreview.innerHTML = '<div style="color:#aaa; text-align:center; margin-top:2rem;">Start writing...</div>'; return; }
+        if (!md) { 
+            elements.webPreview.innerHTML = '<div style="color:#aaa; text-align:center; margin-top:2rem;">Start writing...</div>'; 
+            return; 
+        }
         try {
-            const html = (typeof marked.parse === 'function') ? marked.parse(md) : marked(md);
+            const options = { breaks: true, gfm: true };
+            const html = (typeof marked.parse === 'function') ? marked.parse(md, options) : marked(md, options);
             elements.webPreview.innerHTML = html;
         } catch (e) { elements.webPreview.innerHTML = md; }
 
+        // Local Image Path Resolving
         elements.webPreview.querySelectorAll('img').forEach(img => {
             let src = img.getAttribute('src');
             if (src && src.startsWith('./images/')) img.src = src.substring(1);
@@ -59,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const md = editor.getValue().trim();
         if (!md) return null;
 
-        // Variables Processing
+        // Dynamic Variable Processing
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
         const docName = docs[currentDocId]?.name || 'Untitled';
         const now = new Date();
@@ -99,12 +111,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!res.ok) throw new Error("Server error");
             return await res.blob();
-        } catch (e) { console.error("PDF Request failed:", e); return null; }
-        finally { elements.loadingSpinner.style.display = 'none'; }
+        } catch (e) { 
+            console.error("PDF Request failed:", e);
+            return null; 
+        } finally { 
+            elements.loadingSpinner.style.display = 'none'; 
+        }
     }
 
     async function updatePreview(force = false) {
         if (isUpdating) { needsUpdate = true; return; }
+        
         updateWebPreview();
         if (currentPreviewMode !== 'pdf' && !force) return;
 
@@ -115,6 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (blob) {
                 if (currentPdfBlobUrl) URL.revokeObjectURL(currentPdfBlobUrl);
                 currentPdfBlobUrl = URL.createObjectURL(blob);
+                
+                // Force iframe refresh and fit
                 elements.pdfPreview.src = 'about:blank';
                 setTimeout(() => {
                     elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH';
@@ -144,7 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
             docs[currentDocId].lastSaved = new Date().toISOString();
             localStorage.setItem('md_docs', JSON.stringify(docs));
         }
-        // Save Settings
+        
+        // Settings Persistence
         const settings = {
             showHeader: get('show-header').checked,
             headerLeftEnable: get('header-left-enable').checked,
@@ -163,10 +183,13 @@ document.addEventListener('DOMContentLoaded', () => {
             autoUpdate: elements.autoUpdate.checked
         };
         localStorage.setItem('md_pdf_settings_full', JSON.stringify(settings));
-        
+
         elements.statusMsg.classList.add('saved');
         elements.statusMsg.textContent = 'Saved';
-        setTimeout(() => { elements.statusMsg.classList.remove('saved'); elements.statusMsg.textContent = 'Ready'; }, 1000);
+        setTimeout(() => {
+            elements.statusMsg.classList.remove('saved');
+            elements.statusMsg.textContent = 'Ready';
+        }, 1000);
     }
 
     function loadFromLocal() {
@@ -241,7 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
         needsUpdate = false;
     }
 
-    // 5. Explicit Binding
+    // 5. Explicit Event Bindings
+
     elements.modeWebBtn.onclick = () => switchMode('web');
     elements.modePdfBtn.onclick = () => switchMode('pdf');
     elements.previewBtn.onclick = () => updatePreview(true);
@@ -256,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Document Management
     elements.docSelector.onchange = (e) => {
         currentDocId = e.target.value;
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
@@ -302,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Toolbar Actions
     elements.uploadBtn.onclick = () => elements.fileUpload.click();
     elements.fileUpload.onchange = (e) => {
         const file = e.target.files[0];
@@ -323,11 +349,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     elements.clearEditorBtn.onclick = () => { if (confirm('Clear editor?')) { editor.setValue(''); resetPdfPreview(); updatePreview(); } };
 
+    // Settings Binding (EVERY input/select)
     document.querySelectorAll('.settings-content input, .settings-content select, #auto-update').forEach(el => {
         const ev = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
         el.addEventListener(ev, () => triggerAutoUpdate());
     });
 
+    // Zoom Button (Fit)
     document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
@@ -339,10 +367,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 6. Init
-    const savedDocs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-    if (Object.keys(savedDocs).length > 0) {
-        currentDocId = Object.keys(savedDocs)[0];
+    // 6. Initial Load
+    const initialDocs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+    if (Object.keys(initialDocs).length > 0) {
+        currentDocId = Object.keys(initialDocs)[0];
         loadFromLocal();
     } else {
         fetch('/api/example').then(r => r.text()).then(t => { 
