@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/api/example').then(r => r.text()).then(t => { editor.setValue(t); });
     }
     
-    // Zoom
+    // Zoom Logic
     document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
@@ -174,8 +174,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const size = btn.dataset.size;
             [elements.webPreview, elements.pdfPreview].forEach(target => {
                 if (!target) return;
-                if (size === 'fit') { target.style.width = '100%'; target.style.margin = '0'; }
-                else { target.style.width = '100%'; target.style.margin = '0'; }
+                if (size === 'fit') {
+                    target.style.width = '100%';
+                    target.style.margin = '0';
+                    if (target === elements.webPreview) target.style.boxShadow = 'none';
+                } else {
+                    // Standard A4 display width on screen is roughly 210mm
+                    target.style.width = '210mm';
+                    target.style.margin = '2rem auto';
+                    if (target === elements.webPreview) target.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
+                }
             });
         });
     });
