@@ -30,11 +30,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Controls
     const pageFormat = document.getElementById('page-format');
     const showHeader = document.getElementById('show-header');
-    const headerTitle = document.getElementById('header-title');
-    const showPageNumbers = document.getElementById('show-page-numbers');
+    const headerLeftEnable = document.getElementById('header-left-enable');
+    const headerLeftText = document.getElementById('header-left-text');
+    const headerRightEnable = document.getElementById('header-right-enable');
+    const headerRightText = document.getElementById('header-right-text');
+
+    const showFooter = document.getElementById('show-footer');
+    const footerLeftEnable = document.getElementById('footer-left-enable');
+    const footerLeftText = document.getElementById('footer-left-text');
+    const footerRightEnable = document.getElementById('footer-right-enable');
     const pageFormatStyle = document.getElementById('page-format-style');
-    const showCopyright = document.getElementById('show-copyright');
-    const copyrightText = document.getElementById('copyright-text');
+
     const autoPageBreak = document.getElementById('auto-page-break');
     const breakH1 = document.getElementById('break-h1');
     const breakH2 = document.getElementById('break-h2');
@@ -161,10 +167,21 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('md_docs', JSON.stringify(docs));
 
         const settings = {
-            pageFormat: pageFormat.value, showHeader: showHeader.checked, headerTitle: headerTitle.value,
-            showPageNumbers: showPageNumbers.checked, pageFormatStyle: pageFormatStyle.value,
-            showCopyright: showCopyright.checked, copyright_text: copyrightText.value,
-            autoPageBreak: autoPageBreak.checked, breakH1: breakH1.checked, breakH2: breakH2.checked, breakH3: breakH3.checked
+            pageFormat: pageFormat.value,
+            showHeader: showHeader.checked,
+            headerLeftEnable: headerLeftEnable.checked,
+            headerLeftText: headerLeftText.value,
+            headerRightEnable: headerRightEnable.checked,
+            headerRightText: headerRightText.value,
+            showFooter: showFooter.checked,
+            footerLeftEnable: footerLeftEnable.checked,
+            footerLeftText: footerLeftText.value,
+            footerRightEnable: footerRightEnable.checked,
+            pageFormatStyle: pageFormatStyle.value,
+            autoPageBreak: autoPageBreak.checked, 
+            breakH1: breakH1.checked, 
+            breakH2: breakH2.checked, 
+            breakH3: breakH3.checked
         };
         localStorage.setItem('md_pdf_settings', JSON.stringify(settings));
         
@@ -182,12 +199,18 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const d = JSON.parse(saved);
                 pageFormat.value = d.pageFormat || 'A4';
-                showHeader.checked = d.showHeader ?? false;
-                headerTitle.value = d.headerTitle || '';
-                showPageNumbers.checked = d.showPageNumbers ?? true;
+                showHeader.checked = d.showHeader ?? true;
+                headerLeftEnable.checked = d.headerLeftEnable ?? true;
+                headerLeftText.value = d.headerLeftText || 'Document Title';
+                headerRightEnable.checked = d.headerRightEnable ?? false;
+                headerRightText.value = d.headerRightText || '';
+                
+                showFooter.checked = d.showFooter ?? true;
+                footerLeftEnable.checked = d.footerLeftEnable ?? true;
+                footerLeftText.value = d.footerLeftText || '© 2026 All Rights Reserved';
+                footerRightEnable.checked = d.footerRightEnable ?? true;
                 pageFormatStyle.value = d.pageFormatStyle || 'page_of';
-                showCopyright.checked = d.showCopyright ?? true;
-                copyrightText.value = d.copyright_text || '';
+
                 autoPageBreak.checked = d.autoPageBreak ?? true;
                 breakH1.checked = d.breakH1 ?? false;
                 breakH2.checked = d.breakH2 ?? false;
@@ -312,8 +335,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const markdown = editor.getValue().trim();
         if (!markdown) return null;
         const config = {
-            pagination: { enable_auto_page_break: autoPageBreak.checked, break_before_h1: breakH1.checked, break_before_h2: breakH2.checked, break_before_h3: breakH3.checked, format: pageFormat.value },
-            header_footer: { show_header: showHeader.checked, header_title: headerTitle.value, show_copyright: showCopyright.checked, copyright_text: copyrightText.value, show_page_numbers: showPageNumbers.checked, page_number_format: pageFormatStyle.value }
+            pagination: { 
+                enable_auto_page_break: autoPageBreak.checked, 
+                break_before_h1: breakH1.checked, 
+                break_before_h2: breakH2.checked, 
+                break_before_h3: breakH3.checked, 
+                format: pageFormat.value 
+            },
+            header_footer: { 
+                show_header: showHeader.checked, 
+                header_left: headerLeftEnable.checked ? headerLeftText.value : '',
+                header_right: headerRightEnable.checked ? headerRightText.value : '',
+                show_footer: showFooter.checked,
+                footer_left: footerLeftEnable.checked ? footerLeftText.value : '',
+                footer_right: footerRightEnable.checked ? 'PAGE_NUM' : '',
+                page_number_format: pageFormatStyle.value
+            }
         };
         try {
             loadingSpinner.style.display = 'block';
@@ -374,8 +411,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     editor.on('change', triggerAutoUpdate);
-    [pageFormat, showHeader, headerTitle, showPageNumbers, pageFormatStyle, showCopyright, copyrightText, autoPageBreak, breakH1, breakH2, breakH3].forEach(i => {
-        i.addEventListener(i.type === 'text' ? 'input' : 'change', triggerAutoUpdate);
+    [
+        pageFormat, showHeader, headerLeftEnable, headerLeftText, headerRightEnable, headerRightText, 
+        showFooter, footerLeftEnable, footerLeftText, footerRightEnable, pageFormatStyle, 
+        autoPageBreak, breakH1, breakH2, breakH3
+    ].forEach(i => {
+        if (i) i.addEventListener(i.type === 'text' || i.tagName === 'INPUT' && i.type !== 'checkbox' ? 'input' : 'change', triggerAutoUpdate);
     });
 
     function updateStatus(text, isError = false) {

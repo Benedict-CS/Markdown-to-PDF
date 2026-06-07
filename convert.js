@@ -128,29 +128,31 @@ async function convert(input, options = {}) {
 
     // 5. Header/Footer Templates
     const headerTemplate = config.header_footer.show_header ? `
-        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa;">
-            <span>${config.header_footer.header_title}</span>
-            <span>${config.header_footer.header_author}</span>
+        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa; border-bottom: 0.5px solid #eee; margin-bottom: 5px;">
+            <span>${config.header_footer.header_left || ''}</span>
+            <span>${config.header_footer.header_right || ''}</span>
         </div>
     ` : '<span></span>';
 
     let pageNumberHtml = '';
-    if (config.header_footer.show_page_numbers) {
+    if (config.header_footer.footer_right === 'PAGE_NUM') {
         switch (config.header_footer.page_number_format) {
             case 'slash': pageNumberHtml = '<span class="pageNumber"></span> / <span class="totalPages"></span>'; break;
             case 'simple': pageNumberHtml = '<span class="pageNumber"></span>'; break;
             default: pageNumberHtml = 'Page <span class="pageNumber"></span> of <span class="totalPages"></span>'; break;
         }
+    } else {
+        pageNumberHtml = `<span>${config.header_footer.footer_right || ''}</span>`;
     }
 
-    const footerTemplate = `
-        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888;">
-            <span>${config.header_footer.show_copyright ? config.header_footer.copyright_text : ''}</span>
-            <span>${pageNumberHtml}</span>
+    const footerTemplate = config.header_footer.show_footer ? `
+        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888; border-top: 0.5px solid #eee; margin-top: 5px;">
+            <span>${config.header_footer.footer_left || ''}</span>
+            ${pageNumberHtml}
         </div>
-    `;
+    ` : '<span></span>';
 
-    const enableHeaderFooter = config.header_footer.show_header || config.header_footer.show_copyright || config.header_footer.show_page_numbers;
+    const enableHeaderFooter = config.header_footer.show_header || config.header_footer.show_footer;
 
     try {
         const browser = await getBrowser();
