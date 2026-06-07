@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. State
+    // 1. Core State
     let editor = null;
     let currentPreviewMode = 'web';
     let currentDocId = 'current';
@@ -25,19 +25,34 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadMDBtn: get('download-md-btn'),
         fileUpload: get('file-upload'),
         loadExampleBtn: get('load-example-btn'),
-        clearEditorBtn: get('clear-editor-btn')
+        clearEditorBtn: get('clear-editor-btn'),
+        modeWebBtn: get('mode-web-btn'),
+        modePdfBtn: get('mode-pdf-btn'),
+        previewBtn: get('preview-btn'),
+        convertBtn: get('convert-btn')
     };
 
     // 3. Editor Init
     editor = CodeMirror.fromTextArea(get('markdown-input'), {
-        mode: 'markdown', lineNumbers: true, theme: 'default', lineWrapping: true
+        mode: 'markdown', 
+        lineNumbers: true, 
+        theme: 'default', 
+        lineWrapping: true
     });
-    editor.on('change', () => triggerAutoUpdate());
+    
+    editor.on('change', () => {
+        console.log("[LiveUpdate] Editor changed");
+        triggerAutoUpdate();
+    });
 
     // 4. Functions
     async function updateWebPreview() {
+        if (!editor) return;
         const md = editor.getValue();
-        if (!md) { elements.webPreview.innerHTML = '<div style="color:#aaa; text-align:center; margin-top:2rem;">Start typing...</div>'; return; }
+        if (!md) { 
+            elements.webPreview.innerHTML = '<div style="color:#aaa; text-align:center; margin-top:2rem;">Start typing...</div>'; 
+            return; 
+        }
         try {
             const html = (typeof marked.parse === 'function') ? marked.parse(md) : marked(md);
             elements.webPreview.innerHTML = html;
@@ -50,13 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function requestPDF() {
+        if (!editor) return null;
         const md = editor.getValue().trim();
         if (!md) return null;
 
         const now = new Date();
         const today = now.toISOString().split('T')[0];
         const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-
         const processText = (str) => (str || '').replace(/{date}/g, today).replace(/{time}/g, time);
 
         const config = {
@@ -87,12 +102,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!res.ok) throw new Error("Server error");
             return await res.blob();
-        } catch (e) { console.error("PDF Error:", e); return null; }
-        finally { elements.loadingSpinner.style.display = 'none'; }
+        } catch (e) { 
+            console.error("PDF Request failed:", e);
+            return null; 
+        } finally { 
+            elements.loadingSpinner.style.display = 'none'; 
+        }
     }
 
     async function updatePreview(force = false) {
         if (isUpdating) { needsUpdate = true; return; }
+        
         updateWebPreview();
         if (currentPreviewMode !== 'pdf' && !force) return;
 
@@ -133,6 +153,13 @@ document.addEventListener('DOMContentLoaded', () => {
             docs[currentDocId].lastSaved = new Date().toISOString();
             localStorage.setItem('md_docs', JSON.stringify(docs));
         }
+        
+        elements.statusMsg.classList.add('saved');
+        elements.statusMsg.textContent = 'Saved';
+        setTimeout(() => {
+            elements.statusMsg.classList.remove('saved');
+            elements.statusMsg.textContent = 'Ready';
+        }, 1000);
     }
 
     function updateDocSelector() {
@@ -149,8 +176,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function switchMode(mode) {
         currentPreviewMode = mode;
-        get('mode-web-btn').classList.toggle('active', mode === 'web');
-        get('mode-pdf-btn').classList.toggle('active', mode === 'pdf');
+        elements.modeWebBtn.classList.toggle('active', mode === 'web');
+        elements.modePdfBtn.classList.toggle('active', mode === 'pdf');
         if (mode === 'web') {
             elements.webPreview.style.display = 'block';
             elements.pdfPreview.style.display = 'none';
@@ -169,9 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.pdfPreview.style.width = '100%';
         elements.pdfPreview.style.margin = '0';
         elements.pdfPreview.style.boxShadow = 'none';
-        if (currentPreviewMode === 'pdf' && currentPdfBlobUrl && !elements.pdfPreview.src.includes('#view=FitH')) {
-            elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH';
-        }
     }
 
     function resetPdfPreview() {
@@ -182,11 +206,11 @@ document.addEventListener('DOMContentLoaded', () => {
         needsUpdate = false;
     }
 
-    // 5. Events
-    get('mode-web-btn').onclick = () => switchMode('web');
-    get('mode-pdf-btn').onclick = () => switchMode('pdf');
-    get('preview-btn').onclick = () => updatePreview(true);
-    get('convert-btn').onclick = async () => {
+    // 5. Explicit Event Binding - ALL SYSTEMS
+    elements.modeWebBtn.onclick = () => switchMode('web');
+    elements.modePdfBtn.onclick = () => switchMode('pdf');
+    elements.previewBtn.onclick = () => updatePreview(true);
+    elements.convertBtn.onclick = async () => {
         const blob = await requestPDF();
         if (blob) {
             const a = document.createElement('a');
@@ -197,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Doc Management Restored
+    // Doc Management
     elements.docSelector.onchange = (e) => {
         currentDocId = e.target.value;
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
@@ -244,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Toolbar
+    // Toolbar Actions
     elements.uploadBtn.onclick = () => elements.fileUpload.click();
     elements.fileUpload.onchange = (e) => {
         const file = e.target.files[0];
@@ -262,17 +286,36 @@ document.addEventListener('DOMContentLoaded', () => {
         a.click();
     };
     elements.loadExampleBtn.onclick = () => {
-        if (confirm('Restore example?')) fetch('/api/example').then(r => r.text()).then(t => { editor.setValue(t); resetPdfPreview(); updatePreview(); });
+        if (confirm('Restore example?')) {
+            fetch('/api/example').then(r => r.text()).then(t => { 
+                editor.setValue(t); 
+                resetPdfPreview(); 
+                updatePreview(); 
+            });
+        }
     };
-    elements.clearEditorBtn.onclick = () => { if (confirm('Clear?')) { editor.setValue(''); resetPdfPreview(); updatePreview(); } };
+    elements.clearEditorBtn.onclick = () => { 
+        if (confirm('Clear editor?')) { 
+            editor.setValue(''); 
+            resetPdfPreview(); 
+            updatePreview(); 
+        } 
+    };
 
+    // Settings Binding
     document.querySelectorAll('.settings-content input, .settings-content select, #auto-update').forEach(el => {
         const ev = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
-        el.addEventListener(ev, () => triggerAutoUpdate());
+        el.addEventListener(ev, () => {
+            console.log("[Setting] Changed:", el.id);
+            triggerAutoUpdate();
+        });
     });
 
+    // Zoom
     document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+            document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             if (currentPreviewMode === 'pdf' && currentPdfBlobUrl) {
                 elements.pdfPreview.src = 'about:blank';
                 setTimeout(() => { elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH'; applyZoomStyles(); }, 10);
