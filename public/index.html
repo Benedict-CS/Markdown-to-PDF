@@ -70,17 +70,20 @@
             <div class="settings-content">
                 <div class="section-title" style="margin-top: 0;">💡 Pro Tips</div>
                 <div class="tips-box">
+                    <p><strong>Styling:</strong> Use <code>&lt;style&gt;</code> tags for custom CSS.</p>
                     <p><strong>Math:</strong> Use <code>$$ E=mc^2 $$</code></p>
                     <p><strong>Diagrams:</strong> Use <code>```mermaid</code> blocks.</p>
-                    <p><strong>Shortcuts:</strong> <code>Ctrl+S</code> to download PDF.</p>
                 </div>
 
                 <div class="section-title">📂 Document Library</div>
                 <div class="doc-list-container">
                     <select id="doc-selector">
-                        <option value="current">Current Draft</option>
+                        <option value="current">Primary Draft</option>
                     </select>
-                    <button id="new-doc-btn" class="btn-secondary">+</button>
+                    <div class="doc-actions">
+                        <button id="rename-doc-btn" class="btn-secondary" title="Rename Document">✏️</button>
+                        <button id="new-doc-btn" class="btn-secondary" title="New Document">+</button>
+                    </div>
                 </div>
 
                 <div class="section-title">✨ Live Preview</div>
@@ -154,11 +157,6 @@
                         <option value="Letter">US Letter</option>
                         <option value="Legal">Legal</option>
                     </select>
-                </div>
-
-                <div class="section-title">🎨 Custom CSS</div>
-                <div class="css-editor-container">
-                    <textarea id="custom-css-input" placeholder="/* Write CSS here to override styles */"></textarea>
                 </div>
             </div>
         </section>

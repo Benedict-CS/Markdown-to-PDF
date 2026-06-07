@@ -342,17 +342,30 @@ body {
 .doc-list-container {
     display: flex;
     gap: 0.4rem;
+    align-items: center;
 }
 
-#doc-selector { flex: 1; }
-#new-doc-btn { width: 36px; padding: 0; }
-
-.css-editor-container {
-    height: 120px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    overflow: hidden;
+#doc-selector {
+    flex: 1;
+    min-width: 0;
 }
+
+.doc-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.doc-actions button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+#new-doc-btn { font-size: 1.1rem; }
 
 .tips-box {
     background-color: #fff;
