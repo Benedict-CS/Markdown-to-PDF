@@ -34,6 +34,25 @@ document.addEventListener('DOMContentLoaded', () => {
     let debounceTimer = null;
 
     /**
+     * Update the UI theme color to match the selected accent color
+     */
+    function updateUITheme(color) {
+        document.documentElement.style.setProperty('--accent-color', color);
+        
+        // Generate a slightly darker version for hover (simplistic approach)
+        // For a real app, you might use a library or a helper function
+        document.documentElement.style.setProperty('--accent-hover', color + 'ee');
+    }
+
+    // Initialize UI theme
+    updateUITheme(accentColor.value);
+
+    // Sync UI theme when color changes
+    accentColor.addEventListener('input', (e) => {
+        updateUITheme(e.target.value);
+    });
+
+    /**
      * Common function to call the conversion API
      */
     async function requestPDF() {

@@ -1,21 +1,20 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
 :root {
-    --header-height: 60px;
-    --sidebar-width: 300px;
+    --header-height: 64px;
+    --sidebar-width: 320px;
     --border-color: #e1e4e8;
     --bg-light: #f6f8fa;
-    --accent-blue: #0366d6;
+    --accent-color: #0366d6;
+    --accent-hover: #0255b3;
+    --text-main: #24292e;
+    --text-muted: #586069;
+    --radius: 8px;
+    --shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: #fff;
-    color: #24292e;
+    color: var(--text-main);
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -31,15 +30,39 @@ body {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     z-index: 1000;
 }
 
 .logo {
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.25rem;
+    font-weight: 800;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
+    color: var(--accent-color);
+}
+
+.header-links {
+    display: flex;
+    align-items: center;
+    margin-left: 2rem;
+    flex: 1;
+}
+
+.github-link {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.github-link:hover {
+    color: var(--accent-color);
 }
 
 .actions {
@@ -48,26 +71,34 @@ body {
 }
 
 .btn-primary, .btn-secondary {
-    border: 1px solid rgba(27,31,35,0.15);
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
+    border: 1px solid rgba(27,31,35,0.1);
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius);
     font-weight: 600;
     cursor: pointer;
     font-size: 0.85rem;
-    transition: 0.2s cubic-bezier(0.3, 0, 0.5, 1);
+    transition: all 0.2s cubic-bezier(0.3, 0, 0.5, 1);
 }
 
 .btn-primary { 
-    background-color: var(--accent-blue); 
+    background-color: var(--accent-color); 
     color: #fff;
+    border-color: var(--accent-hover);
 }
-.btn-primary:hover { background-color: #0255b3; }
+.btn-primary:hover { 
+    background-color: var(--accent-hover); 
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
 
 .btn-secondary { 
-    background-color: var(--bg-light); 
-    color: #24292e;
+    background-color: #fff; 
+    color: var(--text-main);
 }
-.btn-secondary:hover { background-color: #ebf0f2; }
+.btn-secondary:hover { 
+    background-color: var(--bg-light);
+    border-color: var(--border-color);
+}
 
 /* Layout Container */
 .app-container {
@@ -83,7 +114,7 @@ body {
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--border-color);
-    min-width: 0; /* Important for flex-shrink */
+    min-width: 0;
 }
 
 .controls-panel {
@@ -92,14 +123,16 @@ body {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    border-left: 1px solid var(--border-color);
 }
 
 .panel-header {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: #586069;
-    padding: 0.75rem 1rem;
+    color: var(--text-muted);
+    padding: 1rem 1.25rem;
     background-color: #fff;
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -108,12 +141,12 @@ body {
 }
 
 .spinner {
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-top-color: var(--accent-blue);
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.05);
+    border-top-color: var(--accent-color);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -124,8 +157,9 @@ body {
 .CodeMirror {
     flex: 1;
     height: auto;
-    font-family: "SFMono-Regular", Consolas, monospace;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
     font-size: 14px;
+    background: #fff !important;
 }
 
 /* Preview */
@@ -136,87 +170,169 @@ body {
     justify-content: center;
     align-items: center;
     position: relative;
+    padding: 20px;
 }
 
 .preview-placeholder {
-    color: #adb5bd;
+    color: #fff;
     text-align: center;
+    font-size: 0.9rem;
+    opacity: 0.6;
+    background: rgba(255,255,255,0.1);
+    padding: 2rem;
+    border-radius: var(--radius);
+    border: 2px dashed rgba(255,255,255,0.2);
 }
 
 #pdf-preview {
     width: 100%;
     height: 100%;
     border: none;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 /* Settings Controls */
 .settings-content {
     flex: 1;
     overflow-y: auto;
-    padding: 1.25rem;
-}
-
-.control-group {
-    margin-bottom: 1.25rem;
+    padding: 1.5rem;
 }
 
 .section-title {
-    margin-top: 1.5rem;
-    font-size: 0.8rem;
+    margin-top: 2rem;
+    font-size: 0.85rem;
     font-weight: 700;
-    color: #24292e;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.3rem;
-    margin-bottom: 0.75rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.section-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-color);
+}
+
+.section-title:first-child {
+    margin-top: 0;
+}
+
+.control-group {
+    margin-bottom: 1rem;
 }
 
 .control-group label {
     display: block;
     font-size: 0.8rem;
     font-weight: 600;
-    margin-bottom: 0.4rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
 }
 
 .control-group input[type="text"],
+.control-group input[type="color"],
 .control-group select {
     width: 100%;
-    padding: 0.45rem;
+    padding: 0.6rem;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: var(--radius);
     font-size: 0.85rem;
     background-color: #fff;
+    transition: border-color 0.2s;
+}
+
+.control-group input:focus, .control-group select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
+}
+
+.control-group input[type="color"] {
+    height: 40px;
+    padding: 4px;
+    cursor: pointer;
 }
 
 .control-group.checkbox {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-main);
 }
 
 .control-group.checkbox input {
+    width: 16px;
+    height: 16px;
     cursor: pointer;
+    accent-color: var(--accent-color);
 }
 
 .sub-controls {
-    padding-left: 1.5rem;
-    margin-top: 0.5rem;
+    padding-left: 1.25rem;
+    margin-top: 0.75rem;
     border-left: 2px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.tips-box {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1rem;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+    box-shadow: var(--shadow);
+}
+
+.tips-box p {
+    margin-bottom: 0.6rem;
+}
+
+.tips-box p:last-child {
+    margin-bottom: 0;
+}
+
+.tips-box strong {
+    color: var(--text-main);
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.tips-box code {
+    background-color: var(--bg-light);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.75rem;
+    border: 1px solid var(--border-color);
 }
 
 .status {
     padding: 0.75rem;
-    border-radius: 6px;
-    background-color: #dbedff;
-    color: #0366d6;
+    border-radius: var(--radius);
+    background-color: #eaf5ff;
+    color: var(--accent-color);
     font-size: 0.8rem;
-    margin-top: 1rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
     text-align: center;
+    border: 1px solid rgba(3, 102, 214, 0.1);
 }
 
 .status.error {
-    background-color: #ffeef0;
+    background-color: #fff0f0;
     color: #d73a49;
+    border-color: rgba(215, 58, 73, 0.1);
 }
 
 /* Responsive Design (RWD) */
@@ -231,15 +347,16 @@ body {
         height: auto;
         flex: none;
         border-right: none;
+        border-left: none;
         border-bottom: 1px solid var(--border-color);
     }
 
     .CodeMirror {
-        height: 350px;
+        height: 400px;
     }
 
     #preview-container {
-        height: 500px;
+        height: 600px;
     }
 }
 
@@ -247,8 +364,14 @@ body {
     .app-header {
         flex-direction: column;
         height: auto;
-        padding: 1rem;
+        padding: 1.25rem;
         gap: 1rem;
+    }
+
+    .header-links {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
     }
 
     .actions {
