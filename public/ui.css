@@ -143,210 +143,21 @@ body {
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--text-muted);
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1rem;
     background-color: #fff;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(0, 0, 0, 0.05);
-    border-top-color: var(--accent-color);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* CodeMirror Styling */
-.CodeMirror {
-    flex: 1;
-    height: auto;
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-    font-size: 14px;
-    background: #fff !important;
-}
-
-/* Preview Panel & Container */
-.preview-panel {
-    background-color: #525659; /* Match common browser PDF viewer background */
-}
-
-#preview-container {
-    flex: 1;
-    background-color: transparent;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    padding: 0; /* Remove padding to avoid nested box look */
-    overflow: hidden;
-}
-
-.preview-placeholder {
-    color: rgba(255,255,255,0.7);
-    text-align: center;
-    font-size: 0.95rem;
-    background: rgba(255,255,255,0.05);
-    padding: 3rem;
-    border-radius: var(--radius);
-    border: 2px dashed rgba(255,255,255,0.15);
-    max-width: 300px;
-}
-
-#pdf-preview {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background-color: transparent;
-    opacity: 0;
-    transition: opacity 0.4s ease-out;
-}
-
-#pdf-preview[style*="display: block"] {
-    opacity: 1;
-}
-
-/* Spinner Pulse */
-.spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(0, 0, 0, 0.05);
-    border-top-color: var(--accent-color);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite, pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.1); opacity: 0.7; }
-    100% { transform: scale(1); opacity: 1; }
-}
-.settings-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1.5rem;
-}
-
-.section-title {
-    margin-top: 2rem;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--text-main);
-    display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.section-title::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background-color: var(--border-color);
-}
-
-.section-title:first-child {
-    margin-top: 0;
-}
-
-.control-group {
-    margin-bottom: 1rem;
-}
-
-.control-group label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    margin-bottom: 0.5rem;
-}
-
-.control-group input[type="text"],
-.control-group input[type="color"],
-.control-group select {
-    width: 100%;
-    padding: 0.6rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    font-size: 0.85rem;
-    background-color: #fff;
-    transition: border-color 0.2s;
-}
-
-.control-group input:focus, .control-group select:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
-}
-
-.control-group input[type="color"] {
-    height: 40px;
-    padding: 4px;
-    cursor: pointer;
-}
-
-.control-group.checkbox {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--text-main);
-}
-
-.control-group.checkbox input {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    accent-color: var(--accent-color);
-}
-
-.sub-controls {
-    padding-left: 1.25rem;
-    margin-top: 0.75rem;
-    border-left: 2px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.tips-box {
-    background-color: #fff;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    padding: 1rem;
-    font-size: 0.8rem;
-    line-height: 1.4;
-    color: var(--text-muted);
-    box-shadow: var(--shadow);
-}
-
-.tips-box p {
-    margin-bottom: 0.6rem;
-}
-
-.tips-box p:last-child {
-    margin-bottom: 0;
-}
-
-.tips-box strong {
-    color: var(--text-main);
-    display: block;
-    margin-bottom: 0.2rem;
 }
 
 /* Toolbar */
 .editor-toolbar {
     display: flex;
     gap: 0.4rem;
+    flex-wrap: wrap;
 }
 
 .editor-toolbar button {
