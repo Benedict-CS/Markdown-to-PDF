@@ -114,11 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
         marked.setOptions({ breaks: true, gfm: true });
         webPreview.innerHTML = marked.parse(markdown);
 
-        // Fix image paths
+        // Fix image paths for web preview
         const images = webPreview.querySelectorAll('img');
         images.forEach(img => {
-            const src = img.getAttribute('src');
+            let src = img.getAttribute('src');
             if (src && !src.startsWith('http') && !src.startsWith('/') && !src.startsWith('data:')) {
+                // Remove ./ if present
+                if (src.startsWith('./')) src = src.substring(2);
                 img.src = '/' + src;
             }
         });
