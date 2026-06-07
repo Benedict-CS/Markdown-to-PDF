@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editorPanel = document.querySelector('.editor-panel');
     const docSelector = document.getElementById('doc-selector');
     const renameDocBtn = document.getElementById('rename-doc-btn');
+    const deleteDocBtn = document.getElementById('delete-doc-btn');
     const newDocBtn = document.getElementById('new-doc-btn');
 
     let debounceTimer = null;
@@ -136,8 +137,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
         docSelector.innerHTML = '';
         
-        if (!docs[currentDocId]) {
-            docs[currentDocId] = { id: currentDocId, name: currentDocId === 'current' ? 'Primary Draft' : 'Untitled Draft' };
+        const ids = Object.keys(docs);
+        if (ids.length === 0) {
+            docs['current'] = { id: 'current', name: 'Primary Draft', markdown: '', lastSaved: new Date().toISOString() };
+            localStorage.setItem('md_docs', JSON.stringify(docs));
+            currentDocId = 'current';
         }
 
         Object.keys(docs).sort((a, b) => (docs[b].lastSaved || '').localeCompare(docs[a].lastSaved || '')).forEach(id => {
@@ -157,13 +161,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renameDocBtn.addEventListener('click', () => {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-        const oldName = docs[currentDocId].name || 'Untitled Draft';
+        const oldName = docs[currentDocId]?.name || 'Untitled Draft';
         const newName = prompt('Rename document:', oldName);
         if (newName && newName !== oldName) {
             docs[currentDocId].name = newName;
             localStorage.setItem('md_docs', JSON.stringify(docs));
             updateDocSelector();
             updateStatus(`Renamed to "${newName}"`);
+        }
+    });
+
+    deleteDocBtn.addEventListener('click', () => {
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        const ids = Object.keys(docs);
+        
+        if (ids.length <= 1) {
+            alert('Cannot delete the last document. Create a new one first!');
+            return;
+        }
+
+        const docName = docs[currentDocId]?.name || 'this document';
+        if (confirm(`Permanently delete "${docName}"?`)) {
+            delete docs[currentDocId];
+            localStorage.setItem('md_docs', JSON.stringify(docs));
+            
+            // Switch to another available doc
+            currentDocId = Object.keys(docs)[0];
+            loadFromLocal();
+            updatePreview();
+            updateStatus('Document deleted.');
         }
     });
 
