@@ -26,9 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const breakH1 = document.getElementById('break-h1');
     const breakH2 = document.getElementById('break-h2');
     
-    // Auto-Update Controls
     const autoUpdateToggle = document.getElementById('auto-update');
     const updateDelaySelect = document.getElementById('update-delay');
+    const loadExampleBtn = document.getElementById('load-example-btn');
 
     let debounceTimer = null;
 
@@ -49,6 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadExample();
+
+    // Re-load example on button click
+    loadExampleBtn.addEventListener('click', () => {
+        if (confirm('This will replace your current content with the example. Continue?')) {
+            loadExample();
+        }
+    });
 
     /**
      * Common function to call the conversion API
