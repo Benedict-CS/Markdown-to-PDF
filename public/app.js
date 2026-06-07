@@ -289,6 +289,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updatePreview() {
+        const markdown = editor.getValue().trim();
+        
+        // If empty, clear the preview and show placeholder
+        if (!markdown) {
+            pdfPreview.style.display = 'none';
+            previewPlaceholder.style.display = 'block';
+            updateStatus('Editor empty. Preview cleared.');
+            return;
+        }
+
         updateStatus('Updating preview...');
         const blob = await requestPDF();
         if (blob) {
