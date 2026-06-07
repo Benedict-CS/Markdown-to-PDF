@@ -31,8 +31,96 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateDelaySelect = document.getElementById('update-delay');
     const loadExampleBtn = document.getElementById('load-example-btn');
     const clearEditorBtn = document.getElementById('clear-editor-btn');
+    const uploadBtn = document.getElementById('upload-btn');
+    const fileUpload = document.getElementById('file-upload');
+    const editorPanel = document.querySelector('.editor-panel');
 
     let debounceTimer = null;
+
+    /**
+     * Persistence: Save content and settings to localStorage
+     */
+    function saveToLocal() {
+        const data = {
+            markdown: editor.getValue(),
+            settings: {
+                pageFormat: pageFormat.value,
+                showHeader: showHeader.checked,
+                headerTitle: headerTitle.value,
+                showPageNumbers: showPageNumbers.checked,
+                pageFormatStyle: pageFormatStyle.value,
+                showCopyright: showCopyright.checked,
+                copyright_text: copyrightText.value,
+                autoPageBreak: autoPageBreak.checked,
+                breakH1: breakH1.checked,
+                breakH2: breakH2.checked,
+                breakH3: breakH3.checked
+            }
+        };
+        localStorage.setItem('md_to_pdf_data', JSON.stringify(data));
+    }
+
+    /**
+     * Persistence: Load content and settings from localStorage
+     */
+    function loadFromLocal() {
+        const saved = localStorage.getItem('md_to_pdf_data');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                editor.setValue(data.markdown || '');
+                if (data.settings) {
+                    pageFormat.value = data.settings.pageFormat || 'A4';
+                    showHeader.checked = data.settings.showHeader ?? false;
+                    headerTitle.value = data.settings.headerTitle || '';
+                    showPageNumbers.checked = data.settings.showPageNumbers ?? true;
+                    pageFormatStyle.value = data.settings.pageFormatStyle || 'page_of';
+                    showCopyright.checked = data.settings.showCopyright ?? true;
+                    copyrightText.value = data.settings.copyright_text || '';
+                    autoPageBreak.checked = data.settings.autoPageBreak ?? true;
+                    breakH1.checked = data.settings.breakH1 ?? false;
+                    breakH2.checked = data.settings.breakH2 ?? false;
+                    breakH3.checked = data.settings.breakH3 ?? false;
+                }
+                return true;
+            } catch (e) {
+                console.error('Failed to parse saved data', e);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * File Upload Logic
+     */
+    function handleFile(file) {
+        if (!file || !file.name.endsWith('.md')) {
+            updateStatus('Please upload a .md file.', true);
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            editor.setValue(e.target.result);
+            updatePreview();
+            updateStatus(`File loaded: ${file.name}`);
+        };
+        reader.readAsText(file);
+    }
+
+    uploadBtn.addEventListener('click', () => fileUpload.click());
+    fileUpload.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    // Drag and Drop
+    editorPanel.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        editorPanel.classList.add('drag-over');
+    });
+    editorPanel.addEventListener('dragleave', () => editorPanel.classList.remove('drag-over'));
+    editorPanel.addEventListener('drop', (e) => {
+        e.preventDefault();
+        editorPanel.classList.remove('drag-over');
+        handleFile(e.dataTransfer.files[0]);
+    });
 
     /**
      * Load example.md content into the editor
@@ -51,8 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Auto-load on startup
-    loadExample();
+    // Startup: Load from Local or Example
+    if (!loadFromLocal()) {
+        loadExample();
+    } else {
+        updatePreview();
+    }
 
     // Re-load example on button click
     loadExampleBtn.addEventListener('click', () => {
@@ -68,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdfPreview.style.display = 'none';
             previewPlaceholder.style.display = 'block';
             updateStatus('Editor cleared.');
+            localStorage.removeItem('md_to_pdf_data');
         }
     });
 
@@ -174,7 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Trigger update on editor change
-    editor.on('change', triggerAutoUpdate);
+    editor.on('change', () => {
+        triggerAutoUpdate();
+        saveToLocal();
+    });
 
     // Trigger update on any setting change
     const settingInputs = [
@@ -185,7 +281,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     settingInputs.forEach(input => {
         const eventType = (input.type === 'text') ? 'input' : 'change';
-        input.addEventListener(eventType, triggerAutoUpdate);
+        input.addEventListener(eventType, () => {
+            triggerAutoUpdate();
+            saveToLocal();
+        });
     });
 
     function updateStatus(text, isError = false) {

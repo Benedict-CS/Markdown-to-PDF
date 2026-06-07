@@ -354,15 +354,20 @@ body {
 
 .editor-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 1rem;
 }
 
-.editor-actions .btn-secondary,
-.editor-actions .btn-danger {
-    flex: 1;
+.editor-actions button {
+    flex: 1 1 45%;
     padding: 0.4rem 0.5rem;
     font-size: 0.75rem;
+}
+
+.editor-panel.drag-over {
+    background-color: #f0f7ff;
+    border: 2px dashed var(--accent-color);
 }
 
 .btn-danger {
