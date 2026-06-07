@@ -14,9 +14,14 @@
     
     <!-- KaTeX for Math -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     
     <!-- Mermaid for Diagrams -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.2.4/dist/mermaid.min.js"></script>
+
+    <!-- Marked for Instant Preview -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <header class="app-header">
@@ -58,7 +63,10 @@
         <section class="preview-panel">
             <div class="panel-header">
                 <div class="header-title-group">
-                    Live Preview
+                    <div class="preview-mode-toggle">
+                        <button id="mode-web-btn" class="mode-btn active" title="Instant Web Preview">🌐 Web</button>
+                        <button id="mode-pdf-btn" class="mode-btn" title="Exact PDF Preview">📄 PDF</button>
+                    </div>
                     <span id="loading-spinner" class="spinner" style="display: none;"></span>
                 </div>
                 <div class="preview-controls">
@@ -68,7 +76,8 @@
                 </div>
             </div>
             <div id="preview-container">
-                <div class="preview-placeholder">Click "Update Preview" or enable Auto-Update</div>
+                <div id="web-preview" class="markdown-body"></div>
+                <div class="preview-placeholder" style="display: none;">Click "Update Preview" or enable Auto-Update</div>
                 <iframe id="pdf-preview" style="display: none;"></iframe>
             </div>
         </section>
