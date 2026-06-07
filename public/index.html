@@ -9,7 +9,6 @@
     <!-- CodeMirror for Syntax Highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/markdown/markdown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
     
@@ -57,11 +56,23 @@
                 <div class="editor-toolbar">
                     <input type="file" id="file-upload" accept=".md" style="display: none;">
                     <input type="file" id="image-upload" accept="image/*" style="display: none;">
-                    <button id="upload-btn" title="Upload .md File">📂 Upload</button>
-                    <button id="image-btn" title="Upload Image">🖼️ Image</button>
-                    <button id="download-md-btn" title="Export .md File">💾 Export</button>
-                    <button id="load-example-btn" title="Restore Example Content">📝 Sample</button>
-                    <button id="clear-editor-btn" class="btn-text-danger" title="Clear Editor">🗑️ Clear</button>
+                    
+                    <div class="toolbar-group">
+                        <button id="upload-btn" title="Upload .md File">📂 Upload</button>
+                        <button id="image-btn" title="Upload Image">🖼️ Image</button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button id="download-md-btn" title="Export .md File">💾 Export</button>
+                    </div>
+
+                    <div class="dropdown">
+                        <button class="btn-secondary btn-small">More ▾</button>
+                        <div class="dropdown-content">
+                            <button id="load-example-btn">📝 Restore Sample</button>
+                            <button id="clear-editor-btn" class="btn-text-danger">🗑️ Clear All</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <textarea id="markdown-input"></textarea>
