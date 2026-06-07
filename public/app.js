@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
         webPreview: get('web-preview'),
         previewPlaceholder: document.querySelector('.preview-placeholder'),
         loadingSpinner: get('loading-spinner'),
-        statusMsg: get('status-message'),
         autoUpdate: get('auto-update'),
         docSelector: get('doc-selector')
     };
@@ -25,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mode: 'markdown', lineNumbers: true, theme: 'default', lineWrapping: true
     });
     editor.on('change', () => {
-        console.log("Editor content changed");
+        console.log("[Editor] Content changed");
         triggerAutoUpdate();
     });
 
@@ -33,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateWebPreview() {
         const md = editor.getValue();
-        if (!md) { elements.webPreview.innerHTML = '<div style="color:#aaa; text-align:center; margin-top:2rem;">Start typing...</div>'; return; }
+        if (!md) { elements.webPreview.innerHTML = 'Empty'; return; }
         try {
             const html = (typeof marked.parse === 'function') ? marked.parse(md) : marked(md);
             elements.webPreview.innerHTML = html;
@@ -43,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.webPreview.querySelectorAll('img').forEach(img => {
             let src = img.getAttribute('src');
             if (src && src.startsWith('./images/')) {
-                img.src = src.substring(1); // transform ./images/ to /images/
+                img.src = src.substring(1);
             }
         });
     }
@@ -72,57 +71,59 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            console.log("Requesting PDF from server...");
+            console.log("[Request] Sending PDF request...");
             elements.loadingSpinner.style.display = 'block';
             const res = await fetch('/api/convert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ markdownContent: md, configOptions: config })
             });
-            if (!res.ok) throw new Error("Server responded with error");
-            return await res.blob();
+            if (!res.ok) throw new Error("Server Error");
+            const blob = await res.blob();
+            console.log("[Request] PDF Blob received");
+            return blob;
         } catch (e) { 
-            console.error("PDF Request failed:", e);
+            console.error("[Request] Failed:", e);
             return null; 
         } finally { 
             elements.loadingSpinner.style.display = 'none'; 
         }
     }
 
-    async function updatePreview() {
+    async function updatePreview(force = false) {
         if (isUpdating) {
-            console.log("Already updating, queuing next request");
+            console.log("[Preview] Render in progress, queuing...");
             needsUpdate = true; 
             return; 
         }
         
         updateWebPreview();
-        if (currentPreviewMode !== 'pdf') return;
+        // If not in PDF mode and not forced, don't waste server resources
+        if (currentPreviewMode !== 'pdf' && !force) return;
 
+        console.log("[Preview] Starting PDF render...");
         isUpdating = true;
         needsUpdate = false;
         
         try {
             const blob = await requestPDF();
             if (blob) {
-                console.log("Received new PDF blob, refreshing iframe");
                 if (currentPdfBlobUrl) URL.revokeObjectURL(currentPdfBlobUrl);
                 currentPdfBlobUrl = URL.createObjectURL(blob);
                 
-                // FORCE REFRESH: Replace iframe completely to avoid caching
-                const newIframe = elements.pdfPreview.cloneNode();
-                newIframe.src = currentPdfBlobUrl;
-                newIframe.style.display = 'block';
-                elements.pdfPreview.parentNode.replaceChild(newIframe, elements.pdfPreview);
-                elements.pdfPreview = newIframe;
-                
-                if (elements.previewPlaceholder) elements.previewPlaceholder.style.display = 'none';
+                // CRITICAL: Robust iframe refresh
+                elements.pdfPreview.src = 'about:blank';
+                setTimeout(() => {
+                    elements.pdfPreview.src = currentPdfBlobUrl;
+                    elements.pdfPreview.style.display = 'block';
+                    if (elements.previewPlaceholder) elements.previewPlaceholder.style.display = 'none';
+                }, 10);
             }
         } catch (err) {
-            console.error("Update Preview Error:", err);
+            console.error("[Preview] Update Error:", err);
         } finally {
             isUpdating = false;
-            console.log("Update finished. needsUpdate:", needsUpdate);
+            console.log("[Preview] Render finished. needsUpdate:", needsUpdate);
             if (needsUpdate) updatePreview();
         }
     }
@@ -132,10 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveToLocal();
         if (!elements.autoUpdate.checked) return;
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            console.log("Debounce timeout reached, updating PDF");
-            updatePreview();
-        }, 500);
+        debounceTimer = setTimeout(() => updatePreview(), 500);
     }
 
     function saveToLocal() {
@@ -145,18 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
             docs[currentDocId].lastSaved = new Date().toISOString();
             localStorage.setItem('md_docs', JSON.stringify(docs));
         }
-        // Save settings too
-        const settings = {
-            showHeader: get('show-header').checked,
-            headerLeftText: get('header-left-text').value,
-            headerRightText: get('header-right-text').value,
-            showFooter: get('show-footer').checked,
-            autoUpdate: elements.autoUpdate.checked
-        };
-        localStorage.setItem('md_pdf_settings_simple', JSON.stringify(settings));
     }
 
     function switchMode(mode) {
+        console.log("[Mode] Switching to", mode);
         currentPreviewMode = mode;
         get('mode-web-btn').classList.toggle('active', mode === 'web');
         get('mode-pdf-btn').classList.toggle('active', mode === 'pdf');
@@ -167,36 +157,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (elements.previewPlaceholder) elements.previewPlaceholder.style.display = 'none';
         } else {
             elements.webPreview.style.display = 'none';
-            if (currentPdfBlobUrl) {
-                elements.pdfPreview.style.display = 'block';
-                if (elements.previewPlaceholder) elements.previewPlaceholder.style.display = 'none';
-            } else {
-                elements.pdfPreview.style.display = 'none';
-                if (elements.previewPlaceholder) elements.previewPlaceholder.style.display = 'block';
-                updatePreview();
-            }
+            // FORCE UPDATE on switch to ensure settings changes are reflected
+            updatePreview(true);
         }
     }
 
-    // 5. Explicit Event Binding
+    // 5. Events
     get('mode-web-btn').onclick = () => switchMode('web');
     get('mode-pdf-btn').onclick = () => switchMode('pdf');
-    get('preview-btn').onclick = () => {
-        console.log("Manual update clicked");
-        updatePreview();
-    };
+    get('preview-btn').onclick = () => updatePreview(true);
 
-    // Binding ALL settings manually to be safe
-    const allInputs = document.querySelectorAll('.settings-content input, .settings-content select, #auto-update');
-    allInputs.forEach(el => {
+    // Bind ALL settings
+    document.querySelectorAll('.settings-content input, .settings-content select, #auto-update').forEach(el => {
         const ev = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
         el.addEventListener(ev, () => {
-            console.log(`Setting changed: ${el.id}`);
+            console.log("[Setting] Changed:", el.id);
             triggerAutoUpdate();
         });
     });
 
-    // 6. Initial Load
+    // 6. Init
     const savedDocs = JSON.parse(localStorage.getItem('md_docs') || '{}');
     if (Object.keys(savedDocs).length > 0) {
         currentDocId = Object.keys(savedDocs)[0];
@@ -205,18 +185,17 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/api/example').then(r => r.text()).then(t => { editor.setValue(t); });
     }
     
-    // Zoom Logic
+    // Zoom
     document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const size = btn.dataset.size;
             [elements.webPreview, elements.pdfPreview].forEach(target => {
+                if (!target) return;
                 if (size === 'fit') { target.style.width = '100%'; target.style.margin = '0'; }
                 else { target.style.width = size + '%'; target.style.margin = '2rem auto'; }
             });
         });
     });
-
-    updatePreview();
 });

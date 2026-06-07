@@ -23,7 +23,7 @@ async function convert(input, options = {}) {
     const configJsPath = path.resolve(__dirname, 'config.js');
 
     let config = { 
-        pagination: { format: 'A4', margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' } },
+        pagination: { format: 'A4', margin: { top: '15mm', right: '15mm', bottom: '15mm', left: '15mm' } },
         header_footer: { show_header: false, show_footer: false }
     };
 
@@ -46,11 +46,12 @@ async function convert(input, options = {}) {
 
     const fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${finalCss}</style></head><body class="markdown-body">${htmlBody}</body></html>`;
 
+    // PROPER PUPPETEER TEMPLATES (Must be wrapped in a div with font-size)
     const headerTemplate = config.header_footer.show_header ? `
-        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa;">
-            <span>${config.header_footer.header_left || ''}</span>
-            <span>${config.header_footer.header_right || ''}</span>
-        </div>` : '<span></span>';
+        <div style="font-family: -apple-system, sans-serif; font-size: 10px; width: 100%; margin: 0 15mm; display: flex; justify-content: space-between; color: #999;">
+            <span class="left">${config.header_footer.header_left || ''}</span>
+            <span class="right">${config.header_footer.header_right || ''}</span>
+        </div>` : '<div></div>';
 
     let pageNumberHtml = '';
     if (config.header_footer.footer_right === 'PAGE_NUM') {
@@ -64,20 +65,23 @@ async function convert(input, options = {}) {
     }
 
     const footerTemplate = config.header_footer.show_footer ? `
-        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888;">
-            <span>${config.header_footer.footer_left || ''}</span>
-            ${pageNumberHtml}
-        </div>` : '<span></span>';
+        <div style="font-family: -apple-system, sans-serif; font-size: 10px; width: 100%; margin: 0 15mm; display: flex; justify-content: space-between; color: #999;">
+            <span class="left">${config.header_footer.footer_left || ''}</span>
+            <span class="right">${pageNumberHtml}</span>
+        </div>` : '<div></div>';
 
     try {
         const browser = await getBrowser();
         const page = await browser.newPage();
         await page.setContent(fullHtml, { waitUntil: 'load' });
+        
         const pdfBuffer = await page.pdf({
             format: config.pagination.format,
             margin: config.pagination.margin,
             displayHeaderFooter: config.header_footer.show_header || config.header_footer.show_footer,
-            headerTemplate, footerTemplate, printBackground: true
+            headerTemplate, 
+            footerTemplate, 
+            printBackground: true
         });
         await page.close();
         return { content: pdfBuffer };
