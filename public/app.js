@@ -17,7 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingSpinner: get('loading-spinner'),
         statusMsg: get('status-message'),
         autoUpdate: get('auto-update'),
-        docSelector: get('doc-selector')
+        docSelector: get('doc-selector'),
+        newDocBtn: get('new-doc-btn'),
+        renameDocBtn: get('rename-doc-btn'),
+        deleteDocBtn: get('delete-doc-btn'),
+        uploadBtn: get('upload-btn'),
+        downloadMDBtn: get('download-md-btn'),
+        fileUpload: get('file-upload'),
+        loadExampleBtn: get('load-example-btn'),
+        clearEditorBtn: get('clear-editor-btn')
     };
 
     // 3. Editor Init
@@ -96,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentPdfBlobUrl) URL.revokeObjectURL(currentPdfBlobUrl);
                 currentPdfBlobUrl = URL.createObjectURL(blob);
                 
-                // Force iframe refresh and fit
                 elements.pdfPreview.src = 'about:blank';
                 setTimeout(() => {
                     elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH';
@@ -128,6 +135,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function updateDocSelector() {
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        elements.docSelector.innerHTML = '';
+        Object.keys(docs).sort((a, b) => (docs[b].lastSaved || '').localeCompare(docs[a].lastSaved || '')).forEach(id => {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = docs[id].name || 'Untitled Draft';
+            if (id === currentDocId) opt.selected = true;
+            elements.docSelector.appendChild(opt);
+        });
+    }
+
     function switchMode(mode) {
         currentPreviewMode = mode;
         get('mode-web-btn').classList.toggle('active', mode === 'web');
@@ -150,17 +169,102 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.pdfPreview.style.width = '100%';
         elements.pdfPreview.style.margin = '0';
         elements.pdfPreview.style.boxShadow = 'none';
-
-        // Reset internal PDF zoom by re-setting src if needed
         if (currentPreviewMode === 'pdf' && currentPdfBlobUrl && !elements.pdfPreview.src.includes('#view=FitH')) {
             elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH';
         }
+    }
+
+    function resetPdfPreview() {
+        if (currentPdfBlobUrl) { URL.revokeObjectURL(currentPdfBlobUrl); currentPdfBlobUrl = null; }
+        elements.pdfPreview.src = 'about:blank';
+        elements.pdfPreview.style.display = 'none';
+        if (currentPreviewMode === 'pdf') elements.previewPlaceholder.style.display = 'block';
+        needsUpdate = false;
     }
 
     // 5. Events
     get('mode-web-btn').onclick = () => switchMode('web');
     get('mode-pdf-btn').onclick = () => switchMode('pdf');
     get('preview-btn').onclick = () => updatePreview(true);
+    get('convert-btn').onclick = async () => {
+        const blob = await requestPDF();
+        if (blob) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+            a.download = (docs[currentDocId]?.name || 'document').toLowerCase() + '.pdf';
+            a.click();
+        }
+    };
+
+    // Doc Management Restored
+    elements.docSelector.onchange = (e) => {
+        currentDocId = e.target.value;
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        editor.setValue(docs[currentDocId]?.markdown || '');
+        resetPdfPreview();
+        updatePreview();
+    };
+
+    elements.newDocBtn.onclick = () => {
+        const name = prompt('Document Name:');
+        if (name === null) return;
+        const id = 'doc_' + Date.now();
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        docs[id] = { id, name: name || 'Untitled', markdown: `# ${name || 'Untitled'}\n\nStart writing...`, lastSaved: new Date().toISOString() };
+        localStorage.setItem('md_docs', JSON.stringify(docs));
+        currentDocId = id;
+        editor.setValue(docs[id].markdown);
+        updateDocSelector();
+        resetPdfPreview();
+        updatePreview();
+    };
+
+    elements.renameDocBtn.onclick = () => {
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        const newName = prompt('New Name:', docs[currentDocId]?.name);
+        if (newName) {
+            docs[currentDocId].name = newName;
+            localStorage.setItem('md_docs', JSON.stringify(docs));
+            updateDocSelector();
+        }
+    };
+
+    elements.deleteDocBtn.onclick = () => {
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        if (Object.keys(docs).length <= 1) return alert('Keep at least one doc.');
+        if (confirm('Delete current document?')) {
+            delete docs[currentDocId];
+            localStorage.setItem('md_docs', JSON.stringify(docs));
+            currentDocId = Object.keys(docs)[0];
+            editor.setValue(docs[currentDocId].markdown || '');
+            updateDocSelector();
+            resetPdfPreview();
+            updatePreview();
+        }
+    };
+
+    // Toolbar
+    elements.uploadBtn.onclick = () => elements.fileUpload.click();
+    elements.fileUpload.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => { editor.setValue(ev.target.result); resetPdfPreview(); updatePreview(); };
+        reader.readAsText(file);
+    };
+    elements.downloadMDBtn.onclick = () => {
+        const b = new Blob([editor.getValue()], { type: 'text/markdown' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(b);
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        a.download = (docs[currentDocId]?.name || 'doc').toLowerCase() + '.md';
+        a.click();
+    };
+    elements.loadExampleBtn.onclick = () => {
+        if (confirm('Restore example?')) fetch('/api/example').then(r => r.text()).then(t => { editor.setValue(t); resetPdfPreview(); updatePreview(); });
+    };
+    elements.clearEditorBtn.onclick = () => { if (confirm('Clear?')) { editor.setValue(''); resetPdfPreview(); updatePreview(); } };
 
     document.querySelectorAll('.settings-content input, .settings-content select, #auto-update').forEach(el => {
         const ev = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
@@ -169,16 +273,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            // Force a hard refresh of the iframe to reset internal browser zoom
             if (currentPreviewMode === 'pdf' && currentPdfBlobUrl) {
                 elements.pdfPreview.src = 'about:blank';
-                setTimeout(() => {
-                    elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH';
-                    applyZoomStyles();
-                }, 10);
-            } else {
-                applyZoomStyles();
-            }
+                setTimeout(() => { elements.pdfPreview.src = currentPdfBlobUrl + '#view=FitH'; applyZoomStyles(); }, 10);
+            } else { applyZoomStyles(); }
         });
     });
 
@@ -187,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (Object.keys(savedDocs).length > 0) {
         currentDocId = Object.keys(savedDocs)[0];
         editor.setValue(savedDocs[currentDocId].markdown || '');
+        updateDocSelector();
     } else {
         fetch('/api/example').then(r => r.text()).then(t => { 
             editor.setValue(t); 
@@ -194,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const docs = {}; docs[id] = { id, name: 'Primary Draft', markdown: t, lastSaved: new Date().toISOString() };
             localStorage.setItem('md_docs', JSON.stringify(docs));
             currentDocId = id;
+            updateDocSelector();
         });
     }
     
