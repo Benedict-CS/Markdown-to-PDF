@@ -27,25 +27,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const modePdfBtn = document.getElementById('mode-pdf-btn');
     let currentPreviewMode = 'web'; // Default to instant web mode
 
-    // Controls
+    // Controls - Basic
     const pageFormat = document.getElementById('page-format');
+    const autoPageBreak = document.getElementById('auto-page-break');
+    const breakH1 = document.getElementById('break-h1');
+    const breakH2 = document.getElementById('break-h2');
+    const breakH3 = document.getElementById('break-h3');
+
+    // Controls - Header
     const showHeader = document.getElementById('show-header');
     const headerLeftEnable = document.getElementById('header-left-enable');
     const headerLeftText = document.getElementById('header-left-text');
     const headerRightEnable = document.getElementById('header-right-enable');
     const headerRightText = document.getElementById('header-right-text');
 
+    // Controls - Footer
     const showFooter = document.getElementById('show-footer');
     const footerLeftEnable = document.getElementById('footer-left-enable');
     const footerLeftText = document.getElementById('footer-left-text');
     const footerRightEnable = document.getElementById('footer-right-enable');
     const pageFormatStyle = document.getElementById('page-format-style');
-
-    const autoPageBreak = document.getElementById('auto-page-break');
-    const breakH1 = document.getElementById('break-h1');
-    const breakH2 = document.getElementById('break-h2');
-    const breakH3 = document.getElementById('break-h3');
     
+    // Controls - Global
     const autoUpdateToggle = document.getElementById('auto-update');
     const loadExampleBtn = document.getElementById('load-example-btn');
     const clearEditorBtn = document.getElementById('clear-editor-btn');
@@ -92,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateWebPreview();
         } else {
             webPreview.style.display = 'none';
-            // If we have a current PDF blob, show it. Otherwise update.
             if (currentPdfBlobUrl) {
                 pdfPreview.style.display = 'block';
                 previewPlaceholder.style.display = 'none';
@@ -108,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modePdfBtn.addEventListener('click', () => switchPreviewMode('pdf'));
 
     /**
-     * Instant Web Preview (Marked.js + KaTeX + Mermaid)
+     * Instant Web Preview
      */
     async function updateWebPreview() {
         const markdown = editor.getValue();
@@ -120,18 +122,17 @@ document.addEventListener('DOMContentLoaded', () => {
         marked.setOptions({ breaks: true, gfm: true });
         webPreview.innerHTML = marked.parse(markdown);
 
-        // Fix image paths for web preview
+        // Fix image paths
         const images = webPreview.querySelectorAll('img');
         images.forEach(img => {
             let src = img.getAttribute('src');
             if (src && !src.startsWith('http') && !src.startsWith('/') && !src.startsWith('data:')) {
-                // Remove ./ if present
                 if (src.startsWith('./')) src = src.substring(2);
                 img.src = '/' + src;
             }
         });
 
-        // Render Math
+        // Math rendering if available
         if (window.renderMathInElement) {
             renderMathInElement(webPreview, {
                 delimiters: [
@@ -141,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Render Mermaid
+        // Mermaid rendering if available
         const mermaidBlocks = webPreview.querySelectorAll('pre code.language-mermaid');
         for (let block of mermaidBlocks) {
             const pre = block.parentElement;
@@ -155,12 +156,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Persistence
+     * Persistence & Settings
      */
     function saveToLocal() {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
         if (!docs[currentDocId]) {
-            docs[currentDocId] = { id: currentDocId, name: currentDocId === 'current' ? 'Primary Draft' : 'Untitled Draft' };
+            docs[currentDocId] = { id: currentDocId, name: 'Untitled Draft' };
         }
         docs[currentDocId].markdown = editor.getValue();
         docs[currentDocId].lastSaved = new Date().toISOString();
@@ -186,7 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('md_pdf_settings', JSON.stringify(settings));
         
         statusMsg.classList.add('saved');
-        setTimeout(() => statusMsg.classList.remove('saved'), 1000);
+        statusMsg.textContent = 'Saved';
+        setTimeout(() => {
+            statusMsg.classList.remove('saved');
+            statusMsg.textContent = 'Ready';
+        }, 1000);
     }
 
     function loadFromLocal() {
@@ -198,24 +203,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (saved) {
             try {
                 const d = JSON.parse(saved);
-                pageFormat.value = d.pageFormat || 'A4';
-                showHeader.checked = d.showHeader ?? true;
-                headerLeftEnable.checked = d.headerLeftEnable ?? true;
-                headerLeftText.value = d.headerLeftText || 'Document Title';
-                headerRightEnable.checked = d.headerRightEnable ?? false;
-                headerRightText.value = d.headerRightText || '';
+                if (pageFormat) pageFormat.value = d.pageFormat || 'A4';
+                if (showHeader) showHeader.checked = d.showHeader ?? true;
+                if (headerLeftEnable) headerLeftEnable.checked = d.headerLeftEnable ?? true;
+                if (headerLeftText) headerLeftText.value = d.headerLeftText || 'Document Title';
+                if (headerRightEnable) headerRightEnable.checked = d.headerRightEnable ?? false;
+                if (headerRightText) headerRightText.value = d.headerRightText || '';
                 
-                showFooter.checked = d.showFooter ?? true;
-                footerLeftEnable.checked = d.footerLeftEnable ?? true;
-                footerLeftText.value = d.footerLeftText || '© 2026 All Rights Reserved';
-                footerRightEnable.checked = d.footerRightEnable ?? true;
-                pageFormatStyle.value = d.pageFormatStyle || 'page_of';
+                if (showFooter) showFooter.checked = d.showFooter ?? true;
+                if (footerLeftEnable) footerLeftEnable.checked = d.footerLeftEnable ?? true;
+                if (footerLeftText) footerLeftText.value = d.footerLeftText || '© 2026 All Rights Reserved';
+                if (footerRightEnable) footerRightEnable.checked = d.footerRightEnable ?? true;
+                if (pageFormatStyle) pageFormatStyle.value = d.pageFormatStyle || 'page_of';
 
-                autoPageBreak.checked = d.autoPageBreak ?? true;
-                breakH1.checked = d.breakH1 ?? false;
-                breakH2.checked = d.breakH2 ?? false;
-                breakH3.checked = d.breakH3 ?? false;
-            } catch(e) {}
+                if (autoPageBreak) autoPageBreak.checked = d.autoPageBreak ?? true;
+                if (breakH1) breakH1.checked = d.breakH1 ?? false;
+                if (breakH2) breakH2.checked = d.breakH2 ?? false;
+                if (breakH3) breakH3.checked = d.breakH3 ?? false;
+            } catch(e) { console.error('Settings load error', e); }
         }
         updateDocSelector();
         return !!doc;
@@ -238,6 +243,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /**
+     * Document Actions
+     */
     docSelector.addEventListener('change', (e) => {
         currentDocId = e.target.value;
         loadFromLocal();
@@ -252,14 +260,13 @@ document.addEventListener('DOMContentLoaded', () => {
             docs[currentDocId].name = newName;
             localStorage.setItem('md_docs', JSON.stringify(docs));
             updateDocSelector();
-            updateStatus('Renamed');
         }
     });
 
     deleteDocBtn.addEventListener('click', () => {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
         if (Object.keys(docs).length <= 1) return alert('Cannot delete last doc.');
-        if (confirm('Delete?')) {
+        if (confirm('Delete current document?')) {
             delete docs[currentDocId];
             localStorage.setItem('md_docs', JSON.stringify(docs));
             currentDocId = Object.keys(docs)[0];
@@ -293,13 +300,17 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         r.readAsText(file);
     }
+
     uploadBtn.addEventListener('click', () => fileUpload.click());
     fileUpload.addEventListener('change', (e) => handleFile(e.target.files[0]));
+    
     downloadMDBtn.addEventListener('click', () => {
-        const b = new Blob([editor.getValue()], { type: 'text/markdown' });
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        const content = editor.getValue();
+        const b = new Blob([content], { type: 'text/markdown' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(b);
-        a.download = (docs[currentDocId]?.name || 'doc').toLowerCase() + '.md';
+        a.download = (docs[currentDocId]?.name || 'document').toLowerCase().replace(/\s+/g, '-') + '.md';
         a.click();
     });
 
@@ -319,21 +330,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (Object.keys(JSON.parse(localStorage.getItem('md_docs') || '{}')).length === 0) loadExample();
-    else { loadFromLocal(); updatePreview(); }
-
-    loadExampleBtn.addEventListener('click', () => { if (confirm('Restore?')) loadExample(); });
+    loadExampleBtn.addEventListener('click', () => { if (confirm('Restore example content?')) loadExample(); });
     clearEditorBtn.addEventListener('click', () => { 
-        if (confirm('Clear?')) { 
+        if (confirm('Clear editor?')) { 
             editor.setValue(''); 
             resetPdfPreview();
             updatePreview(); 
         } 
     });
 
+    /**
+     * PDF Generation
+     */
     async function requestPDF() {
         const markdown = editor.getValue().trim();
         if (!markdown) return null;
+        
         const config = {
             pagination: { 
                 enable_auto_page_break: autoPageBreak.checked, 
@@ -352,11 +364,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 page_number_format: pageFormatStyle.value
             }
         };
+
         try {
             loadingSpinner.style.display = 'block';
-            const res = await fetch('/api/convert', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ markdownContent: markdown, configOptions: config }) });
+            const res = await fetch('/api/convert', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ markdownContent: markdown, configOptions: config }) 
+            });
             return res.ok ? await res.blob() : null;
-        } catch (e) { return null; } finally { loadingSpinner.style.display = 'none'; }
+        } catch (e) { 
+            console.error('PDF Request Error', e);
+            return null; 
+        } finally { 
+            loadingSpinner.style.display = 'none'; 
+        }
     }
 
     async function updatePreview() {
@@ -382,56 +404,69 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             isUpdating = false;
-            // Catch up if content changed during rendering
-            if (needsUpdate) {
-                updatePreview();
-            }
+            if (needsUpdate) updatePreview();
         }
     }
 
     convertBtn.addEventListener('click', async () => {
         const blob = await requestPDF();
-        if (blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'doc.pdf'; a.click(); }
-    });
-
-    previewBtn.addEventListener('click', () => { 
-        if (currentPreviewMode !== 'pdf') {
-            switchPreviewMode('pdf'); 
-        } else {
-            updatePreview();
+        if (blob) { 
+            const a = document.createElement('a'); 
+            a.href = URL.createObjectURL(blob); 
+            a.download = 'document.pdf'; 
+            a.click(); 
         }
     });
 
+    previewBtn.addEventListener('click', () => { 
+        if (currentPreviewMode !== 'pdf') switchPreviewMode('pdf'); 
+        else updatePreview();
+    });
+
+    /**
+     * Auto-Update Orchestration
+     */
     function triggerAutoUpdate() {
         updateWebPreview();
         saveToLocal();
         if (!autoUpdateToggle.checked) return;
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => { if (currentPreviewMode === 'pdf') updatePreview(); }, 500);
+        debounceTimer = setTimeout(() => { 
+            if (currentPreviewMode === 'pdf') updatePreview(); 
+        }, 500);
     }
 
     editor.on('change', triggerAutoUpdate);
-    [
-        pageFormat, showHeader, headerLeftEnable, headerLeftText, headerRightEnable, headerRightText, 
-        showFooter, footerLeftEnable, footerLeftText, footerRightEnable, pageFormatStyle, 
-        autoPageBreak, breakH1, breakH2, breakH3
-    ].forEach(i => {
-        if (i) i.addEventListener(i.type === 'text' || i.tagName === 'INPUT' && i.type !== 'checkbox' ? 'input' : 'change', triggerAutoUpdate);
+    
+    // Bind all inputs/selects
+    const inputElements = [
+        pageFormat, autoPageBreak, breakH1, breakH2, breakH3,
+        showHeader, headerLeftEnable, headerLeftText, headerRightEnable, headerRightText,
+        showFooter, footerLeftEnable, footerLeftText, footerRightEnable, pageFormatStyle,
+        autoUpdateToggle
+    ];
+
+    inputElements.forEach(el => {
+        if (!el) return;
+        const eventType = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
+        el.addEventListener(eventType, triggerAutoUpdate);
     });
 
-    function updateStatus(text, isError = false) {
-        statusMsg.textContent = text; statusMsg.classList.toggle('error', isError);
-        statusMsg.style.transform = 'scale(1.05)'; setTimeout(() => { statusMsg.style.transform = 'scale(1)'; }, 200);
+    // Initial Load
+    if (Object.keys(JSON.parse(localStorage.getItem('md_docs') || '{}')).length === 0) {
+        loadExample();
+    } else {
+        loadFromLocal();
+        updatePreview();
     }
 
+    // Zoom Controls
     document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
             const size = btn.dataset.size;
             
-            // Reset styles for both
             [webPreview, pdfPreview].forEach(target => {
                 target.style.transform = 'scale(1)';
                 if (size === 'fit') {
@@ -446,5 +481,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     });
+
     switchPreviewMode('web');
 });
