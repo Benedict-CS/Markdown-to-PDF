@@ -387,9 +387,22 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const target = currentPreviewMode === 'web' ? webPreview : pdfPreview;
-            if (btn.dataset.size === 'fit') { target.style.width = '100%'; target.style.transform = 'scale(1)'; }
-            else { const s = parseInt(btn.dataset.size) / 100; target.style.width = (100 / s) + '%'; target.style.transform = `scale(${s})`; }
+            
+            const size = btn.dataset.size;
+            
+            // Reset styles for both
+            [webPreview, pdfPreview].forEach(target => {
+                target.style.transform = 'scale(1)';
+                if (size === 'fit') {
+                    target.style.width = '100%';
+                    target.style.margin = '0';
+                    if (target === webPreview) target.style.boxShadow = 'none';
+                } else {
+                    target.style.width = size + '%';
+                    target.style.margin = '2rem auto';
+                    if (target === webPreview) target.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
+                }
+            });
         });
     });
     switchPreviewMode('web');
