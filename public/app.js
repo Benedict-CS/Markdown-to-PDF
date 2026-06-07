@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         webPreview: get('web-preview'),
         previewPlaceholder: document.querySelector('.preview-placeholder'),
         loadingSpinner: get('loading-spinner'),
+        statusMsg: get('status-message'),
         autoUpdate: get('auto-update'),
         docSelector: get('doc-selector')
     };
@@ -24,15 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
         mode: 'markdown', lineNumbers: true, theme: 'default', lineWrapping: true
     });
     editor.on('change', () => {
-        console.log("[Editor] Content changed");
         triggerAutoUpdate();
     });
 
     // 4. Functions
-
     async function updateWebPreview() {
         const md = editor.getValue();
-        if (!md) { elements.webPreview.innerHTML = 'Empty'; return; }
+        if (!md) { elements.webPreview.innerHTML = '<div style="color:#aaa; text-align:center; margin-top:2rem;">Start typing...</div>'; return; }
         try {
             const html = (typeof marked.parse === 'function') ? marked.parse(md) : marked(md);
             elements.webPreview.innerHTML = html;
@@ -57,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break_before_h1: get('break-h1').checked,
                 break_before_h2: get('break-h2').checked,
                 break_before_h3: get('break-h3').checked,
-                format: get('page-format').value 
+                format: 'A4' 
             },
             header_footer: { 
                 show_header: get('show-header').checked, 
@@ -71,19 +70,16 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            console.log("[Request] Sending PDF request...");
             elements.loadingSpinner.style.display = 'block';
             const res = await fetch('/api/convert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ markdownContent: md, configOptions: config })
             });
-            if (!res.ok) throw new Error("Server Error");
-            const blob = await res.blob();
-            console.log("[Request] PDF Blob received");
-            return blob;
+            if (!res.ok) throw new Error("Server error " + res.status);
+            return await res.blob();
         } catch (e) { 
-            console.error("[Request] Failed:", e);
+            console.error("PDF Request failed:", e);
             return null; 
         } finally { 
             elements.loadingSpinner.style.display = 'none'; 
@@ -91,17 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updatePreview(force = false) {
-        if (isUpdating) {
-            console.log("[Preview] Render in progress, queuing...");
-            needsUpdate = true; 
-            return; 
-        }
+        if (isUpdating) { needsUpdate = true; return; }
         
         updateWebPreview();
-        // If not in PDF mode and not forced, don't waste server resources
         if (currentPreviewMode !== 'pdf' && !force) return;
 
-        console.log("[Preview] Starting PDF render...");
         isUpdating = true;
         needsUpdate = false;
         
@@ -111,19 +101,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentPdfBlobUrl) URL.revokeObjectURL(currentPdfBlobUrl);
                 currentPdfBlobUrl = URL.createObjectURL(blob);
                 
-                // CRITICAL: Robust iframe refresh
+                // Force iframe refresh
                 elements.pdfPreview.src = 'about:blank';
                 setTimeout(() => {
                     elements.pdfPreview.src = currentPdfBlobUrl;
                     elements.pdfPreview.style.display = 'block';
                     if (elements.previewPlaceholder) elements.previewPlaceholder.style.display = 'none';
-                }, 10);
+                }, 50);
             }
-        } catch (err) {
-            console.error("[Preview] Update Error:", err);
         } finally {
             isUpdating = false;
-            console.log("[Preview] Render finished. needsUpdate:", needsUpdate);
             if (needsUpdate) updatePreview();
         }
     }
@@ -146,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function switchMode(mode) {
-        console.log("[Mode] Switching to", mode);
         currentPreviewMode = mode;
         get('mode-web-btn').classList.toggle('active', mode === 'web');
         get('mode-pdf-btn').classList.toggle('active', mode === 'pdf');
@@ -157,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (elements.previewPlaceholder) elements.previewPlaceholder.style.display = 'none';
         } else {
             elements.webPreview.style.display = 'none';
-            // FORCE UPDATE on switch to ensure settings changes are reflected
             updatePreview(true);
         }
     }
@@ -167,13 +152,9 @@ document.addEventListener('DOMContentLoaded', () => {
     get('mode-pdf-btn').onclick = () => switchMode('pdf');
     get('preview-btn').onclick = () => updatePreview(true);
 
-    // Bind ALL settings
     document.querySelectorAll('.settings-content input, .settings-content select, #auto-update').forEach(el => {
         const ev = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
-        el.addEventListener(ev, () => {
-            console.log("[Setting] Changed:", el.id);
-            triggerAutoUpdate();
-        });
+        el.addEventListener(ev, () => triggerAutoUpdate());
     });
 
     // 6. Init
@@ -194,8 +175,10 @@ document.addEventListener('DOMContentLoaded', () => {
             [elements.webPreview, elements.pdfPreview].forEach(target => {
                 if (!target) return;
                 if (size === 'fit') { target.style.width = '100%'; target.style.margin = '0'; }
-                else { target.style.width = size + '%'; target.style.margin = '2rem auto'; }
+                else { target.style.width = '100%'; target.style.margin = '0'; }
             });
         });
     });
+
+    updatePreview();
 });
