@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const breakH3 = document.getElementById('break-h3');
     
     const autoUpdateToggle = document.getElementById('auto-update');
-    const updateDelaySelect = document.getElementById('update-delay');
     const loadExampleBtn = document.getElementById('load-example-btn');
     const clearEditorBtn = document.getElementById('clear-editor-btn');
     const uploadBtn = document.getElementById('upload-btn');
@@ -331,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveToLocal();
         if (!autoUpdateToggle.checked) return;
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => { if (currentPreviewMode === 'pdf') updatePreview(); }, parseInt(updateDelaySelect.value));
+        debounceTimer = setTimeout(() => { if (currentPreviewMode === 'pdf') updatePreview(); }, 500);
     }
 
     editor.on('change', triggerAutoUpdate);
