@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegant Markdown to PDF</title>
+    <link rel="stylesheet" href="ui.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="logo">🚀 Elegant MD-to-PDF</div>
+        <div class="actions">
+            <button id="convert-btn" class="btn-primary">Generate & Download PDF</button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <section class="editor-panel">
+            <div class="panel-header">Markdown Editor</div>
+            <textarea id="markdown-input" placeholder="Type your markdown here..."></textarea>
+        </section>
+
+        <section class="controls-panel">
+            <div class="panel-header">Settings</div>
+            
+            <div class="control-group">
+                <label>Theme Accent Color</label>
+                <input type="color" id="accent-color" value="#0366d6">
+            </div>
+
+            <div class="control-group">
+                <label>Font Size</label>
+                <select id="font-size">
+                    <option value="12px">12px</option>
+                    <option value="14px" selected>14px</option>
+                    <option value="16px">16px</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Page Format</label>
+                <select id="page-format">
+                    <option value="A4" selected>A4</option>
+                    <option value="Letter">Letter</option>
+                </select>
+            </div>
+
+            <div class="control-group checkbox">
+                <input type="checkbox" id="show-page-numbers" checked>
+                <label for="show-page-numbers">Show Page Numbers</label>
+            </div>
+
+            <div class="control-group checkbox">
+                <input type="checkbox" id="show-copyright" checked>
+                <label for="show-copyright">Show Copyright</label>
+            </div>
+
+            <div class="control-group">
+                <label>Copyright Text</label>
+                <input type="text" id="copyright-text" value="© 2026 All Rights Reserved">
+            </div>
+
+            <div class="control-group checkbox">
+                <input type="checkbox" id="auto-page-break" checked>
+                <label for="auto-page-break">Auto Page Break (H2)</label>
+            </div>
+
+            <div id="status-message" class="status">Ready</div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

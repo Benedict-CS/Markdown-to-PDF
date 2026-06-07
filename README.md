@@ -32,10 +32,14 @@ mark-pdf <your-file.md>
 
 ## 🚀 Usage
 
-### 1. Manual Conversion
+### 1. Web Interface (New!)
+Run the local server to use the tool in your browser:
 ```bash
-npm run convert <your-file.md>
+npm start
 ```
+Then open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### 2. Manual Conversion (CLI)
 
 ### 2. Live Watch Mode
 Automatically regenerates the PDF every time you save your `.md`, `.css`, or `config.js` files.

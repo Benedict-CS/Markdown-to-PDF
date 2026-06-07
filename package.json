@@ -1,9 +1,10 @@
 {
   "name": "elegant-md-to-pdf",
   "version": "1.0.0",
-  "description": "A professional Markdown to PDF converter with precise layout control and smart pagination.",
-  "main": "convert.js",
+  "description": "A professional Markdown to PDF converter with a built-in web interface and precise layout control.",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "convert": "node convert.js",
     "watch": "node watch.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -25,6 +26,8 @@
   },
   "type": "commonjs",
   "dependencies": {
+    "body-parser": "^2.2.2",
+    "express": "^5.2.1",
     "md-to-pdf": "^5.2.5"
   }
 }

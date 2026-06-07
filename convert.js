@@ -3,21 +3,13 @@ const path = require('path');
 const fs = require('fs');
 
 /**
- * Converts a markdown file to PDF with pre-defined styling and user configuration.
+ * Core conversion logic.
+ * Supports both file paths and raw markdown content.
  */
-async function convert(inputFile) {
-    if (!inputFile) {
-        console.error('Usage: node convert.js <input.md>');
-        return null;
-    }
+async function convert(input, options = {}) {
+    const isFile = input && fs.existsSync(path.resolve(input)) && input.endsWith('.md');
+    const inputSource = isFile ? { path: path.resolve(input) } : { content: input };
 
-    const inputPath = path.resolve(inputFile);
-    if (!fs.existsSync(inputPath)) {
-        console.error(`File not found: ${inputPath}`);
-        return null;
-    }
-
-    const outputPath = inputPath.replace(/\.md$/, '.pdf');
     const cssPath = path.resolve(__dirname, 'style.css');
     const customCssPath = path.resolve(__dirname, 'custom.css');
     const configJsPath = path.resolve(__dirname, 'config.js');
@@ -45,43 +37,36 @@ async function convert(inputFile) {
             accent_color: '#0366d6', 
             text_color: '#333333', 
             base_font_size: '14px', 
-            line_height: '1.5'
+            line_height: '1.5',
+            h1_border_color: '#333333'
         },
         features: { use_custom_css: true }
     };
 
-    // 2. Load user configuration from config.js
+    // 2. Override with local config.js if exists
     if (fs.existsSync(configJsPath)) {
         try {
             delete require.cache[require.resolve(configJsPath)];
             const userConfig = require(configJsPath);
-            if (userConfig.pagination) {
-                config.pagination = { ...config.pagination, ...userConfig.pagination };
-                if (userConfig.pagination.margin) {
-                    config.pagination.margin = { ...config.pagination.margin, ...userConfig.pagination.margin };
-                }
-            }
-            if (userConfig.header_footer) config.header_footer = { ...config.header_footer, ...userConfig.header_footer };
-            if (userConfig.appearance) config.appearance = { ...config.appearance, ...userConfig.appearance };
-            if (userConfig.features) config.features = { ...config.features, ...userConfig.features };
+            mergeConfig(config, userConfig);
         } catch (e) {
             console.error('❌ Error loading config.js, using defaults.', e);
         }
     }
 
-    // 3. Assemble CSS
+    // 3. Override with dynamic options (from API or CLI)
+    mergeConfig(config, options);
+
+    // 4. Assemble CSS
     const baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
     const customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
 
     const isEnabled = config.pagination.enable_auto_page_break;
     
-    // Explicitly force page breaks based on independent toggles
     const breakRules = `
         h1 { page-break-before: ${(isEnabled && config.pagination.break_before_h1) ? 'always' : 'auto'} !important; }
         h2 { page-break-before: ${(isEnabled && config.pagination.break_before_h2) ? 'always' : 'auto'} !important; }
         h3 { page-break-before: ${(isEnabled && config.pagination.break_before_h3) ? 'always' : 'auto'} !important; }
-        
-        /* Prevent double breaks when headers are adjacent */
         h1 + h2, h1 + h3, h2 + h3 { page-break-before: auto !important; }
     `;
 
@@ -91,14 +76,14 @@ async function convert(inputFile) {
             --text-color: ${config.appearance.text_color} !important;
             --base-font-size: ${config.appearance.base_font_size} !important;
             --line-height: ${config.appearance.line_height} !important;
+            --h1-border: 2px solid ${config.appearance.h1_border_color} !important;
         }
         ${breakRules}
     `;
     
-    // Assemble final CSS: Injected variables LAST for maximum priority
     const finalCss = baseCss + '\n' + themeStyles + '\n' + customCss;
 
-    // 4. Header/Footer Templates
+    // 5. Header/Footer Templates
     const headerTemplate = config.header_footer.show_header ? `
         <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa;">
             <span>${config.header_footer.header_title}</span>
@@ -125,8 +110,7 @@ async function convert(inputFile) {
     const enableHeaderFooter = config.header_footer.show_header || config.header_footer.show_copyright || config.header_footer.show_page_numbers;
 
     try {
-        const pdf = await mdToPdf({ path: inputPath }, { 
-            dest: outputPath,
+        const pdf = await mdToPdf(inputSource, { 
             css: finalCss,
             stylesheet: [], 
             pdf_options: {
@@ -142,20 +126,41 @@ async function convert(inputFile) {
             }
         });
 
-        if (pdf) {
-            console.log(`[${new Date().toLocaleTimeString()}] ✅ Conversion successful: ${path.basename(pdf.filename)}`);
-            return pdf;
-        }
+        return pdf;
     } catch (error) {
         console.error('❌ Error during conversion:', error);
         return null;
     }
 }
 
+/**
+ * Helper to deep merge configurations
+ */
+function mergeConfig(target, source) {
+    if (!source) return;
+    for (const key of Object.keys(source)) {
+        if (source[key] instanceof Object && !Array.isArray(source[key])) {
+            if (!target[key]) target[key] = {};
+            mergeConfig(target[key], source[key]);
+        } else {
+            target[key] = source[key];
+        }
+    }
+}
+
+// CLI Support
 if (require.main === module) {
     const inputFile = process.argv[2];
-    convert(inputFile).then(result => {
-        if (!result) process.exit(1);
+    if (!inputFile) {
+        console.error('Usage: node convert.js <input.md>');
+        process.exit(1);
+    }
+    convert(inputFile).then(pdf => {
+        if (pdf) {
+            const outputPath = inputFile.replace(/\.md$/, '.pdf');
+            fs.writeFileSync(outputPath, pdf.content);
+            console.log(`[${new Date().toLocaleTimeString()}] ✅ Conversion successful: ${path.basename(outputPath)}`);
+        }
     });
 }
 

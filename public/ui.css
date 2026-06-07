@@ -1,0 +1,141 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f4f7f9;
+    color: #333;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-header {
+    background-color: #fff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    z-index: 10;
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.btn-primary {
+    background-color: #0366d6;
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #0255b3;
+}
+
+.btn-primary:disabled {
+    background-color: #a0c4ff;
+    cursor: not-allowed;
+}
+
+.app-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.editor-panel {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #e1e4e8;
+}
+
+.controls-panel {
+    flex: 1;
+    padding: 1.5rem;
+    background-color: #fff;
+    overflow-y: auto;
+}
+
+.panel-header {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #fafbfc;
+    border-bottom: 1px solid #e1e4e8;
+}
+
+.editor-panel textarea {
+    flex: 1;
+    border: none;
+    padding: 2rem;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 1rem;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+}
+
+.control-group {
+    margin-bottom: 1.5rem;
+}
+
+.control-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.control-group input[type="text"],
+.control-group select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5da;
+    border-radius: 4px;
+}
+
+.control-group.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.control-group.checkbox input {
+    width: auto;
+}
+
+.control-group.checkbox label {
+    margin-bottom: 0;
+}
+
+.status {
+    margin-top: 2rem;
+    font-size: 0.85rem;
+    color: #666;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: #f1f8ff;
+    text-align: center;
+}
+
+.status.error {
+    background-color: #ffeef0;
+    color: #d73a49;
+}
