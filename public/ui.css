@@ -51,6 +51,38 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 1.5rem;
+}
+
+.header-toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background-color: var(--bg-light);
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.header-toggle-group:hover {
+    border-color: var(--accent-color);
+    color: var(--text-main);
+}
+
+.header-toggle-group input {
+    cursor: pointer;
+    width: 14px;
+    height: 14px;
+}
+
+.header-toggle-group label {
+    cursor: pointer;
+    user-select: none;
 }
 
 .header-right {
