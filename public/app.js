@@ -59,6 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Preview Mode Switching
      */
+    function resetPdfPreview() {
+        pdfPreview.src = '';
+        pdfPreview.style.display = 'none';
+        if (currentPreviewMode === 'pdf') {
+            previewPlaceholder.style.display = 'block';
+        }
+    }
+
     function switchPreviewMode(mode) {
         currentPreviewMode = mode;
         modeWebBtn.classList.toggle('active', mode === 'web');
@@ -71,7 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
             updateWebPreview();
         } else {
             webPreview.style.display = 'none';
-            updatePreview();
+            if (pdfPreview.src && pdfPreview.src.startsWith('blob:')) {
+                pdfPreview.style.display = 'block';
+                previewPlaceholder.style.display = 'none';
+            } else {
+                pdfPreview.style.display = 'none';
+                previewPlaceholder.style.display = 'block';
+                updatePreview();
+            }
         }
     }
 
@@ -193,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
     docSelector.addEventListener('change', (e) => {
         currentDocId = e.target.value;
         loadFromLocal();
+        resetPdfPreview();
         updatePreview();
     });
 
@@ -215,6 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('md_docs', JSON.stringify(docs));
             currentDocId = Object.keys(docs)[0];
             loadFromLocal();
+            resetPdfPreview();
             updatePreview();
         }
     });
@@ -228,13 +245,18 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('md_docs', JSON.stringify(docs));
         currentDocId = id;
         loadFromLocal();
+        resetPdfPreview();
         updatePreview();
     });
 
     function handleFile(file) {
         if (!file || !file.name.endsWith('.md')) return;
         const r = new FileReader();
-        r.onload = (e) => { editor.setValue(e.target.result); updatePreview(); };
+        r.onload = (e) => { 
+            editor.setValue(e.target.result); 
+            resetPdfPreview();
+            updatePreview(); 
+        };
         r.readAsText(file);
     }
     uploadBtn.addEventListener('click', () => fileUpload.click());
@@ -256,14 +278,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadExample() {
         const res = await fetch('/api/example');
-        if (res.ok) { editor.setValue(await res.text()); updatePreview(); }
+        if (res.ok) { 
+            editor.setValue(await res.text()); 
+            resetPdfPreview();
+            updatePreview(); 
+        }
     }
 
     if (Object.keys(JSON.parse(localStorage.getItem('md_docs') || '{}')).length === 0) loadExample();
     else { loadFromLocal(); updatePreview(); }
 
     loadExampleBtn.addEventListener('click', () => { if (confirm('Restore?')) loadExample(); });
-    clearEditorBtn.addEventListener('click', () => { if (confirm('Clear?')) { editor.setValue(''); updatePreview(); } });
+    clearEditorBtn.addEventListener('click', () => { 
+        if (confirm('Clear?')) { 
+            editor.setValue(''); 
+            resetPdfPreview();
+            updatePreview(); 
+        } 
+    });
 
     async function requestPDF() {
         const markdown = editor.getValue().trim();
