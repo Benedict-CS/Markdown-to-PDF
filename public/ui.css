@@ -344,19 +344,19 @@ body {
     border: 1px solid var(--border-color);
 }
 
-.status {
-    padding: 0.75rem;
-    border-radius: var(--radius);
+.status-pill {
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
     background-color: #eaf5ff;
     color: var(--accent-color);
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-top: 1.5rem;
-    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 700;
     border: 1px solid rgba(3, 102, 214, 0.1);
+    transition: all 0.3s ease;
+    opacity: 0.9;
 }
 
-.status.error {
+.status-pill.error {
     background-color: #fff0f0;
     color: #d73a49;
     border-color: rgba(215, 58, 73, 0.1);

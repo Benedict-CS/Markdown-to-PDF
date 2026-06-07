@@ -169,5 +169,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateStatus(text, isError = false) {
         statusMsg.textContent = text;
         statusMsg.classList.toggle('error', isError);
+        
+        // Add a slight pop effect when status changes
+        statusMsg.style.transform = 'scale(1.05)';
+        setTimeout(() => {
+            statusMsg.style.transform = 'scale(1)';
+        }, 200);
     }
 });
