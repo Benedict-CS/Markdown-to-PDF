@@ -448,8 +448,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     inputElements.forEach(el => {
         if (!el) return;
+        // Listen to 'input' for text boxes (immediate) and 'change' for checkboxes/selects
         const eventType = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
-        el.addEventListener(eventType, triggerAutoUpdate);
+        el.addEventListener(eventType, () => {
+            triggerAutoUpdate();
+        });
     });
 
     // Initial Load

@@ -128,7 +128,7 @@ async function convert(input, options = {}) {
 
     // 5. Header/Footer Templates
     const headerTemplate = config.header_footer.show_header ? `
-        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa; border-bottom: 0.5px solid #eee; margin-bottom: 5px;">
+        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #aaa; margin-bottom: 5px;">
             <span>${config.header_footer.header_left || ''}</span>
             <span>${config.header_footer.header_right || ''}</span>
         </div>
@@ -146,7 +146,7 @@ async function convert(input, options = {}) {
     }
 
     const footerTemplate = config.header_footer.show_footer ? `
-        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888; border-top: 0.5px solid #eee; margin-top: 5px;">
+        <div style="font-family: -apple-system, sans-serif; font-size: 9px; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between; color: #888; margin-top: 5px;">
             <span>${config.header_footer.footer_left || ''}</span>
             ${pageNumberHtml}
         </div>
