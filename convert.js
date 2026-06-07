@@ -32,7 +32,25 @@ async function convert(input, options = {}) {
         // 3. Merge incoming options
         mergeConfig(config, options);
 
-        // 4. Prepare PDF Options
+        // 4. Dynamic Pagination Styles (FIX FOR H2 PAGE BREAKS)
+        const isAutoBreak = config.pagination.enable_auto_page_break !== false;
+        const breakH1 = (isAutoBreak && config.pagination.break_before_h1) ? 'always' : 'auto';
+        const breakH2 = (isAutoBreak && config.pagination.break_before_h2) ? 'always' : 'auto';
+        const breakH3 = (isAutoBreak && config.pagination.break_before_h3) ? 'always' : 'auto';
+
+        const dynamicCss = `
+            :root {
+                --h1-page-break: ${breakH1};
+                --h2-page-break: ${breakH2};
+                --h3-page-break: ${breakH3};
+            }
+            h1 { page-break-before: var(--h1-page-break) !important; }
+            h2 { page-break-before: var(--h2-page-break) !important; }
+            h3 { page-break-before: var(--h3-page-break) !important; }
+            h1:first-of-type, h2:first-of-type, h3:first-of-type { page-break-before: auto !important; }
+        `;
+
+        // 5. Prepare PDF Options
         const pdfOptions = {
             format: config.pagination.format || 'A4',
             margin: config.pagination.margin,
@@ -64,12 +82,12 @@ async function convert(input, options = {}) {
                 </div>` : '<div></div>';
         }
 
-        // 5. Execute
+        // 6. Execute
         return await mdToPdf(
             { content: markdownContent },
             {
                 basedir: __dirname,
-                css: baseCss + '\n' + (options.customCss || ''),
+                css: baseCss + '\n' + dynamicCss + '\n' + (options.customCss || ''),
                 pdf_options: pdfOptions,
                 launch_options: {
                     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
