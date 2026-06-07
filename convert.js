@@ -1,32 +1,6 @@
 const { mdToPdf } = require('md-to-pdf');
 const path = require('path');
 const fs = require('fs');
-const puppeteer = require('puppeteer');
-
-let sharedBrowser = null;
-
-/**
- * Get or create a shared browser instance for faster performance.
- */
-async function getBrowser() {
-    if (sharedBrowser && sharedBrowser.isConnected()) {
-        return sharedBrowser;
-    }
-    
-    sharedBrowser = await puppeteer.launch({
-        args: [
-            '--no-sandbox', 
-            '--disable-setuid-sandbox', 
-            '--disable-dev-shm-usage', 
-            '--disable-accelerated-2d-canvas', 
-            '--no-first-run', 
-            '--no-zygote', 
-            '--single-process', 
-            '--disable-gpu'
-        ]
-    });
-    return sharedBrowser;
-}
 
 /**
  * Core conversion logic.
@@ -137,9 +111,6 @@ async function convert(input, options = {}) {
     const enableHeaderFooter = config.header_footer.show_header || config.header_footer.show_copyright || config.header_footer.show_page_numbers;
 
     try {
-        // Use shared browser
-        const browser = await getBrowser();
-        
         const pdf = await mdToPdf(inputSource, { 
             css: finalCss,
             stylesheet: [
@@ -161,8 +132,16 @@ async function convert(input, options = {}) {
                 waitUntil: 'networkidle2', 
             },
             launch_options: {
-                // Pass existing browser instance
-                browser: browser 
+                args: [
+                    '--no-sandbox', 
+                    '--disable-setuid-sandbox', 
+                    '--disable-dev-shm-usage', 
+                    '--disable-accelerated-2d-canvas', 
+                    '--no-first-run', 
+                    '--no-zygote', 
+                    '--single-process', 
+                    '--disable-gpu'
+                ]
             }
         });
 
@@ -200,9 +179,6 @@ if (require.main === module) {
             const outputPath = inputFile.replace(/\.md$/, '.pdf');
             fs.writeFileSync(outputPath, pdf.content);
             console.log(`[${new Date().toLocaleTimeString()}] ✅ Conversion successful: ${path.basename(outputPath)}`);
-            
-            // For CLI, we close the shared browser
-            if (sharedBrowser) sharedBrowser.close();
         }
     });
 }
