@@ -1,3 +1,4 @@
+document.addEventListener('DOMContentLoaded', () => {
     // Initialize CodeMirror Editor
     const editor = CodeMirror.fromTextArea(document.getElementById('markdown-input'), {
         mode: 'markdown',
@@ -97,18 +98,20 @@
 
         const savedSettings = localStorage.getItem('md_pdf_settings');
         if (savedSettings) {
-            const data = JSON.parse(savedSettings);
-            pageFormat.value = data.pageFormat || 'A4';
-            showHeader.checked = data.showHeader ?? false;
-            headerTitle.value = data.headerTitle || '';
-            showPageNumbers.checked = data.showPageNumbers ?? true;
-            pageFormatStyle.value = data.pageFormatStyle || 'page_of';
-            showCopyright.checked = data.showCopyright ?? true;
-            copyrightText.value = data.copyright_text || '';
-            autoPageBreak.checked = data.autoPageBreak ?? true;
-            breakH1.checked = data.breakH1 ?? false;
-            breakH2.checked = data.breakH2 ?? false;
-            breakH3.checked = data.breakH3 ?? false;
+            try {
+                const data = JSON.parse(savedSettings);
+                pageFormat.value = data.pageFormat || 'A4';
+                showHeader.checked = data.showHeader ?? false;
+                headerTitle.value = data.headerTitle || '';
+                showPageNumbers.checked = data.showPageNumbers ?? true;
+                pageFormatStyle.value = data.pageFormatStyle || 'page_of';
+                showCopyright.checked = data.showCopyright ?? true;
+                copyrightText.value = data.copyright_text || '';
+                autoPageBreak.checked = data.autoPageBreak ?? true;
+                breakH1.checked = data.breakH1 ?? false;
+                breakH2.checked = data.breakH2 ?? false;
+                breakH3.checked = data.breakH3 ?? false;
+            } catch(e) {}
         }
         updateDocSelector();
         return !!doc;
@@ -181,7 +184,9 @@
     editorPanel.addEventListener('drop', (e) => {
         e.preventDefault();
         editorPanel.classList.remove('drag-over');
-        handleFile(e.dataTransfer.files[0]);
+        if (e.dataTransfer.files[0]) {
+            handleFile(e.dataTransfer.files[0]);
+        }
     });
 
     /**

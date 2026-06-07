@@ -11,6 +11,12 @@
     --shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: #fff;
@@ -149,27 +155,96 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
     gap: 0.5rem;
+    min-height: 48px;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.05);
+    border-top-color: var(--accent-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite, pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* CodeMirror Styling */
+.CodeMirror {
+    flex: 1;
+    height: auto;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 14px;
+    background: #fff !important;
+}
+
+/* Preview Panel & Container */
+.preview-panel {
+    background-color: #525659;
+}
+
+#preview-container {
+    flex: 1;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+}
+
+.preview-placeholder {
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+    font-size: 0.95rem;
+    background: rgba(255,255,255,0.05);
+    padding: 3rem;
+    border-radius: var(--radius);
+    border: 2px dashed rgba(255,255,255,0.15);
+    max-width: 300px;
+}
+
+#pdf-preview {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: transparent;
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+}
+
+#pdf-preview[style*="display: block"] {
+    opacity: 1;
 }
 
 /* Toolbar */
 .editor-toolbar {
     display: flex;
-    gap: 0.4rem;
+    gap: 0.25rem;
     flex-wrap: wrap;
 }
 
 .editor-toolbar button {
-    background: none;
+    background: #fff;
     border: 1px solid var(--border-color);
-    padding: 0.3rem 0.6rem;
+    padding: 0.25rem 0.5rem;
     border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .editor-toolbar button:hover {
@@ -184,152 +259,141 @@ body {
     background-color: #fff5f5 !important;
 }
 
-/* Document Library */
+/* Settings Controls */
+.settings-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem;
+}
+
+.section-title {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.section-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-color);
+}
+
+.section-title:first-child {
+    margin-top: 0;
+}
+
+.control-group {
+    margin-bottom: 1rem;
+}
+
+.control-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+}
+
+.control-group input[type="text"],
+.control-group input[type="color"],
+.control-group select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-size: 0.8rem;
+    background-color: #fff;
+}
+
+.control-group input:focus, .control-group select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.control-group input[type="color"] {
+    height: 36px;
+    padding: 2px;
+}
+
+.control-group.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.sub-controls {
+    padding-left: 1.25rem;
+    margin-top: 0.5rem;
+    border-left: 2px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 .doc-list-container {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
-#doc-selector {
-    flex: 1;
-}
+#doc-selector { flex: 1; }
+#new-doc-btn { width: 36px; padding: 0; }
 
-#new-doc-btn {
-    width: 40px;
-    padding: 0;
-    font-size: 1.2rem;
-}
-
-/* Custom CSS Editor */
 .css-editor-container {
-    height: 150px;
+    height: 120px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.tips-box {
+    background-color: #fff;
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
-    overflow: hidden;
-    background-color: #fff;
+    padding: 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+    box-shadow: var(--shadow);
 }
 
-.css-editor-container .CodeMirror {
-    height: 100%;
-    font-size: 12px;
-}
-
-#custom-css-input {
-    width: 100%;
-    height: 100%;
-    border: none;
-    resize: none;
-    font-family: monospace;
-    font-size: 12px;
-    padding: 0.5rem;
-}
-
-/* Shortcuts & Tips */
+.tips-box p { margin-bottom: 0.4rem; }
+.tips-box p:last-child { margin-bottom: 0; }
 .tips-box code {
     background-color: var(--bg-light);
-    padding: 2px 5px;
-    border-radius: 4px;
+    padding: 1px 4px;
+    border-radius: 3px;
     font-family: monospace;
-    font-size: 0.75rem;
-    border: 1px solid var(--border-color);
-}
-
-.editor-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-
-.editor-actions button {
-    flex: 1 1 45%;
-    padding: 0.4rem 0.5rem;
-    font-size: 0.75rem;
-}
-
-.editor-panel.drag-over {
-    background-color: #f0f7ff;
-    border: 2px dashed var(--accent-color);
-}
-
-.btn-danger {
-    background-color: #fff;
-    color: #d73a49;
-    border: 1px solid rgba(215, 58, 73, 0.2);
-    border-radius: var(--radius);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-danger:hover {
-    background-color: #fff5f5;
-    border-color: #d73a49;
 }
 
 .status-pill {
-    padding: 0.35rem 0.85rem;
+    padding: 0.25rem 0.75rem;
     border-radius: 20px;
     background-color: #eaf5ff;
     color: var(--accent-color);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 700;
     border: 1px solid rgba(3, 102, 214, 0.1);
     transition: all 0.3s ease;
-    opacity: 0.9;
 }
 
 .status-pill.error {
     background-color: #fff0f0;
     color: #d73a49;
-    border-color: rgba(215, 58, 73, 0.1);
 }
 
 /* Responsive Design (RWD) */
 @media (max-width: 1200px) {
-    .app-container {
-        flex-direction: column;
-        overflow-y: auto;
-    }
-    
-    .editor-panel, .preview-panel, .controls-panel {
-        width: 100%;
-        height: auto;
-        flex: none;
-        border-right: none;
-        border-left: none;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .CodeMirror {
-        height: 400px;
-    }
-
-    #preview-container {
-        height: 600px;
-    }
-}
-
-@media (max-width: 768px) {
-    .app-header {
-        flex-direction: column;
-        height: auto;
-        padding: 1.25rem;
-        gap: 1rem;
-    }
-
-    .header-links {
-        margin-left: 0;
-        width: 100%;
-        justify-content: center;
-    }
-
-    .actions {
-        width: 100%;
-    }
-
-    .btn-primary, .btn-secondary {
-        flex: 1;
-        text-align: center;
-    }
+    .app-container { flex-direction: column; overflow-y: auto; }
+    .editor-panel, .preview-panel, .controls-panel { width: 100%; height: auto; flex: none; border: none; border-bottom: 1px solid var(--border-color); }
+    .CodeMirror { height: 400px; }
+    #preview-container { height: 600px; }
 }
