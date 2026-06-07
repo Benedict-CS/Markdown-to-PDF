@@ -57,8 +57,16 @@
 
         <section class="preview-panel">
             <div class="panel-header">
-                Live Preview
-                <span id="loading-spinner" class="spinner" style="display: none;"></span>
+                <div class="header-title-group">
+                    Live Preview
+                    <span id="loading-spinner" class="spinner" style="display: none;"></span>
+                </div>
+                <div class="preview-controls">
+                    <button class="zoom-btn" data-size="fit" title="Fit to Container">Fit</button>
+                    <button class="zoom-btn" data-size="75">75%</button>
+                    <button class="zoom-btn active" data-size="100">100%</button>
+                    <button class="zoom-btn" data-size="125">125%</button>
+                </div>
             </div>
             <div id="preview-container">
                 <div class="preview-placeholder">Click "Update Preview" or enable Auto-Update</div>

@@ -192,15 +192,51 @@ body {
     background-color: #525659;
 }
 
+.header-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.preview-controls {
+    display: flex;
+    background-color: var(--bg-light);
+    padding: 2px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.zoom-btn {
+    background: none;
+    border: none;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.zoom-btn:hover {
+    color: var(--text-main);
+}
+
+.zoom-btn.active {
+    background-color: #fff;
+    color: var(--accent-color);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
 #preview-container {
     flex: 1;
     background-color: transparent;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     position: relative;
     padding: 0;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .preview-placeholder {
@@ -212,6 +248,7 @@ body {
     border-radius: var(--radius);
     border: 2px dashed rgba(255,255,255,0.15);
     max-width: 300px;
+    align-self: center;
 }
 
 #pdf-preview {
@@ -220,7 +257,8 @@ body {
     border: none;
     background-color: transparent;
     opacity: 0;
-    transition: opacity 0.4s ease-out;
+    transition: opacity 0.4s ease-out, transform 0.2s ease-out, width 0.2s ease-out;
+    transform-origin: top center;
 }
 
 #pdf-preview[style*="display: block"] {

@@ -402,4 +402,30 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMsg.style.transform = 'scale(1.05)';
         setTimeout(() => { statusMsg.style.transform = 'scale(1)'; }, 200);
     }
+
+    /**
+     * Preview Zoom / Sizing Logic
+     */
+    const zoomButtons = document.querySelectorAll('.zoom-btn');
+    zoomButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const size = btn.dataset.size;
+            
+            // UI Toggle
+            zoomButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Apply Sizing
+            if (size === 'fit') {
+                pdfPreview.style.width = '100%';
+                pdfPreview.style.height = '100%';
+                pdfPreview.style.transform = 'scale(1)';
+            } else {
+                const scale = parseInt(size) / 100;
+                pdfPreview.style.width = (100 / scale) + '%';
+                pdfPreview.style.height = (100 / scale) + '%';
+                pdfPreview.style.transform = `scale(${scale})`;
+            }
+        });
+    });
 });
