@@ -71,13 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateWebPreview();
         } else {
             webPreview.style.display = 'none';
-            if (pdfPreview.src && pdfPreview.src.startsWith('blob:')) {
-                pdfPreview.style.display = 'block';
-                previewPlaceholder.style.display = 'none';
-            } else {
-                pdfPreview.style.display = 'none';
-                previewPlaceholder.style.display = 'block';
-            }
+            updatePreview();
         }
     }
 
