@@ -15,37 +15,43 @@ body {
 
 .app-header {
     background-color: #fff;
-    padding: 1rem 2rem;
+    padding: 0.8rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    z-index: 10;
+    z-index: 100;
 }
 
 .logo {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #2c3e50;
 }
 
-.btn-primary {
-    background-color: #0366d6;
-    color: #fff;
+.actions {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.btn-primary, .btn-secondary {
     border: none;
-    padding: 0.6rem 1.2rem;
+    padding: 0.5rem 1rem;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
+    font-size: 0.9rem;
     transition: background 0.2s;
 }
 
-.btn-primary:hover {
-    background-color: #0255b3;
-}
+.btn-primary { background-color: #0366d6; color: #fff; }
+.btn-primary:hover { background-color: #0255b3; }
 
-.btn-primary:disabled {
-    background-color: #a0c4ff;
+.btn-secondary { background-color: #e1e4e8; color: #24292e; }
+.btn-secondary:hover { background-color: #d1d5da; }
+
+.btn-primary:disabled, .btn-secondary:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
@@ -55,87 +61,112 @@ body {
     overflow: hidden;
 }
 
-.editor-panel {
-    flex: 3;
+.editor-panel, .preview-panel {
+    flex: 2;
     display: flex;
     flex-direction: column;
     border-right: 1px solid #e1e4e8;
+    background: #fff;
 }
 
 .controls-panel {
     flex: 1;
-    padding: 1.5rem;
-    background-color: #fff;
+    padding: 1.2rem;
+    background-color: #fafbfc;
     overflow-y: auto;
 }
 
 .panel-header {
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 700;
     text-transform: uppercase;
-    color: #888;
-    margin-bottom: 1rem;
-    padding: 0.5rem 1rem;
-    background-color: #fafbfc;
+    color: #6a737d;
+    padding: 0.6rem 1rem;
+    background-color: #f6f8fa;
     border-bottom: 1px solid #e1e4e8;
 }
 
-.editor-panel textarea {
+/* CodeMirror Override */
+.CodeMirror {
     flex: 1;
-    border: none;
-    padding: 2rem;
+    height: auto;
     font-family: "SFMono-Regular", Consolas, monospace;
-    font-size: 1rem;
+    font-size: 14px;
     line-height: 1.6;
-    resize: none;
-    outline: none;
+}
+
+#preview-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #525659; /* PDF viewer grey */
+    position: relative;
+}
+
+.preview-placeholder {
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+#pdf-preview {
+    width: 100%;
+    height: 100%;
+    border: none;
 }
 
 .control-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #24292e;
+    border-bottom: 1px solid #e1e4e8;
+    padding-bottom: 0.3rem;
 }
 
 .control-group label {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.3rem;
     color: #555;
 }
 
 .control-group input[type="text"],
 .control-group select {
     width: 100%;
-    padding: 0.5rem;
+    padding: 0.4rem;
     border: 1px solid #d1d5da;
     border-radius: 4px;
+    font-size: 0.85rem;
 }
 
 .control-group.checkbox {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 
-.control-group.checkbox input {
-    width: auto;
-}
+.control-group.checkbox label { margin-bottom: 0; }
 
-.control-group.checkbox label {
-    margin-bottom: 0;
+.sub-controls {
+    padding-left: 1.2rem;
+    margin-top: 0.3rem;
 }
 
 .status {
-    margin-top: 2rem;
-    font-size: 0.85rem;
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
     color: #666;
-    padding: 0.5rem;
+    padding: 0.6rem;
     border-radius: 4px;
     background-color: #f1f8ff;
     text-align: center;
 }
 
-.status.error {
-    background-color: #ffeef0;
-    color: #d73a49;
-}
+.status.error { background-color: #ffeef0; color: #d73a49; }

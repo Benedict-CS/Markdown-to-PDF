@@ -5,19 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elegant Markdown to PDF</title>
     <link rel="stylesheet" href="ui.css">
+    <!-- CodeMirror for Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/markdown/markdown.min.js"></script>
 </head>
 <body>
     <header class="app-header">
         <div class="logo">🚀 Elegant MD-to-PDF</div>
         <div class="actions">
-            <button id="convert-btn" class="btn-primary">Generate & Download PDF</button>
+            <button id="preview-btn" class="btn-secondary">Update Preview</button>
+            <button id="convert-btn" class="btn-primary">Download PDF</button>
         </div>
     </header>
 
     <main class="app-container">
         <section class="editor-panel">
             <div class="panel-header">Markdown Editor</div>
-            <textarea id="markdown-input" placeholder="Type your markdown here..."></textarea>
+            <textarea id="markdown-input"></textarea>
+        </section>
+
+        <section class="preview-panel">
+            <div class="panel-header">Live Preview</div>
+            <div id="preview-container">
+                <div class="preview-placeholder">Click "Update Preview" to see the PDF</div>
+                <iframe id="pdf-preview" style="display: none;"></iframe>
+            </div>
         </section>
 
         <section class="controls-panel">
@@ -29,15 +43,6 @@
             </div>
 
             <div class="control-group">
-                <label>Font Size</label>
-                <select id="font-size">
-                    <option value="12px">12px</option>
-                    <option value="14px" selected>14px</option>
-                    <option value="16px">16px</option>
-                </select>
-            </div>
-
-            <div class="control-group">
                 <label>Page Format</label>
                 <select id="page-format">
                     <option value="A4" selected>A4</option>
@@ -45,24 +50,50 @@
                 </select>
             </div>
 
+            <div class="control-group section-title">Header / Footer</div>
+            
+            <div class="control-group checkbox">
+                <input type="checkbox" id="show-header">
+                <label for="show-header">Show Header</label>
+            </div>
+            <div class="control-group">
+                <input type="text" id="header-title" placeholder="Header Title" value="How to use markdown">
+            </div>
+
             <div class="control-group checkbox">
                 <input type="checkbox" id="show-page-numbers" checked>
                 <label for="show-page-numbers">Show Page Numbers</label>
+            </div>
+            <div class="control-group">
+                <select id="page-format-style">
+                    <option value="simple" selected>Simple (1)</option>
+                    <option value="page_of">Page of (Page 1 of 5)</option>
+                    <option value="slash">Slash (1 / 5)</option>
+                </select>
             </div>
 
             <div class="control-group checkbox">
                 <input type="checkbox" id="show-copyright" checked>
                 <label for="show-copyright">Show Copyright</label>
             </div>
-
             <div class="control-group">
-                <label>Copyright Text</label>
                 <input type="text" id="copyright-text" value="© 2026 All Rights Reserved">
             </div>
 
+            <div class="control-group section-title">Pagination</div>
             <div class="control-group checkbox">
                 <input type="checkbox" id="auto-page-break" checked>
-                <label for="auto-page-break">Auto Page Break (H2)</label>
+                <label for="auto-page-break">Enable Auto Break</label>
+            </div>
+            <div class="sub-controls">
+                <div class="control-group checkbox">
+                    <input type="checkbox" id="break-h1">
+                    <label for="break-h1">Break before H1</label>
+                </div>
+                <div class="control-group checkbox">
+                    <input type="checkbox" id="break-h2" checked>
+                    <label for="break-h2">Break before H2</label>
+                </div>
             </div>
 
             <div id="status-message" class="status">Ready</div>
