@@ -292,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'doc.pdf'; a.click(); }
     });
 
-    previewBtn.addEventListener('click', () => { switchPreviewMode('pdf'); updatePreview(); });
+    previewBtn.addEventListener('click', () => { switchPreviewMode('pdf'); });
 
     function triggerAutoUpdate() {
         updateWebPreview();
