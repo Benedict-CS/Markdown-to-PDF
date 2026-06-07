@@ -26,9 +26,12 @@
         </section>
 
         <section class="preview-panel">
-            <div class="panel-header">Live Preview</div>
+            <div class="panel-header">
+                Live Preview
+                <span id="loading-spinner" class="spinner" style="display: none;"></span>
+            </div>
             <div id="preview-container">
-                <div class="preview-placeholder">Click "Update Preview" to see the PDF</div>
+                <div class="preview-placeholder">Click "Update Preview" or enable Auto-Update</div>
                 <iframe id="pdf-preview" style="display: none;"></iframe>
             </div>
         </section>
@@ -36,20 +39,22 @@
         <section class="controls-panel">
             <div class="panel-header">Settings</div>
             <div class="settings-content">
-                <div class="control-group">
-                    <label>Theme Accent Color</label>
-                    <input type="color" id="accent-color" value="#0366d6">
+                <div class="section-title">Live Preview Settings</div>
+                <div class="control-group checkbox">
+                    <input type="checkbox" id="auto-update" checked>
+                    <label for="auto-update">Auto-Update Preview</label>
                 </div>
-
                 <div class="control-group">
-                    <label>Page Format</label>
-                    <select id="page-format">
-                        <option value="A4" selected>A4</option>
-                        <option value="Letter">Letter</option>
+                    <label>Update Delay (Seconds)</label>
+                    <select id="update-delay">
+                        <option value="1000">1s (Fast)</option>
+                        <option value="2000" selected>2s (Balanced)</option>
+                        <option value="3000">3s (Stable)</option>
+                        <option value="5000">5s (Battery Saver)</option>
                     </select>
                 </div>
 
-                <div class="section-title">Header / Footer</div>
+                <div class="section-title">Theme & Layout</div>
                 
                 <div class="control-group checkbox">
                     <input type="checkbox" id="show-header">

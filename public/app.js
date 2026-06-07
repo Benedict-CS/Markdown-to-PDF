@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMsg = document.getElementById('status-message');
     const pdfPreview = document.getElementById('pdf-preview');
     const previewPlaceholder = document.querySelector('.preview-placeholder');
+    const loadingSpinner = document.getElementById('loading-spinner');
 
     // Controls
     const accentColor = document.getElementById('accent-color');
@@ -25,6 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const autoPageBreak = document.getElementById('auto-page-break');
     const breakH1 = document.getElementById('break-h1');
     const breakH2 = document.getElementById('break-h2');
+    
+    // Auto-Update Controls
+    const autoUpdateToggle = document.getElementById('auto-update');
+    const updateDelaySelect = document.getElementById('update-delay');
+
+    let debounceTimer = null;
 
     /**
      * Common function to call the conversion API
@@ -32,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function requestPDF() {
         const markdown = editor.getValue().trim();
         if (!markdown) {
-            updateStatus('Please enter some markdown content first.', true);
+            updateStatus('Please enter markdown content.', true);
             return null;
         }
 
@@ -57,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
+            loadingSpinner.style.display = 'block';
             const response = await fetch('/api/convert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -72,6 +80,23 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('API Error:', error);
             updateStatus('Error: Could not generate PDF.', true);
             return null;
+        } finally {
+            loadingSpinner.style.display = 'none';
+        }
+    }
+
+    /**
+     * Update the preview iframe
+     */
+    async function updatePreview() {
+        updateStatus('Updating preview...');
+        const blob = await requestPDF();
+        if (blob) {
+            const url = window.URL.createObjectURL(blob);
+            pdfPreview.src = url;
+            pdfPreview.style.display = 'block';
+            previewPlaceholder.style.display = 'none';
+            updateStatus('Preview updated!');
         }
     }
 
@@ -81,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
     convertBtn.addEventListener('click', async () => {
         updateStatus('Generating PDF for download...');
         convertBtn.disabled = true;
-        
         const blob = await requestPDF();
         if (blob) {
             const url = window.URL.createObjectURL(blob);
@@ -97,21 +121,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /**
-     * Preview Action
+     * Manual Preview Button
      */
-    previewBtn.addEventListener('click', async () => {
-        updateStatus('Updating preview...');
-        previewBtn.disabled = true;
+    previewBtn.addEventListener('click', updatePreview);
 
-        const blob = await requestPDF();
-        if (blob) {
-            const url = window.URL.createObjectURL(blob);
-            pdfPreview.src = url;
-            pdfPreview.style.display = 'block';
-            previewPlaceholder.style.display = 'none';
-            updateStatus('Preview updated!');
-        }
-        previewBtn.disabled = false;
+    /**
+     * Debounced Auto-Update Logic
+     */
+    editor.on('change', () => {
+        if (!autoUpdateToggle.checked) return;
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            updatePreview();
+        }, parseInt(updateDelaySelect.value));
     });
 
     function updateStatus(text, isError = false) {
