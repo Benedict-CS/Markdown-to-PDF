@@ -129,10 +129,19 @@ async function convert(input, options = {}) {
                 displayHeaderFooter: enableHeaderFooter,
                 headerTemplate: headerTemplate,
                 footerTemplate: footerTemplate,
-                waitUntil: 'networkidle0',
+                waitUntil: 'networkidle2', // Faster than networkidle0, waits for most network activity to end
             },
             launch_options: {
-                args: ['--no-sandbox', '--disable-setuid-sandbox', '--allow-file-access-from-files', '--enable-local-file-access']
+                args: [
+                    '--no-sandbox', 
+                    '--disable-setuid-sandbox', 
+                    '--disable-dev-shm-usage', 
+                    '--disable-accelerated-2d-canvas', 
+                    '--no-first-run', 
+                    '--no-zygote', 
+                    '--single-process', 
+                    '--disable-gpu'
+                ]
             }
         });
 
