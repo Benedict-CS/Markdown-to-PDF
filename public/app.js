@@ -147,13 +147,29 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Debounced Auto-Update Logic
      */
-    editor.on('change', () => {
+    function triggerAutoUpdate() {
         if (!autoUpdateToggle.checked) return;
 
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             updatePreview();
         }, parseInt(updateDelaySelect.value));
+    }
+
+    // Trigger update on editor change
+    editor.on('change', triggerAutoUpdate);
+
+    // Trigger update on any setting change
+    const settingInputs = [
+        accentColor, pageFormat, showHeader, headerTitle, 
+        showPageNumbers, pageFormatStyle, showCopyright, 
+        copyrightText, autoPageBreak, breakH1, breakH2
+    ];
+
+    settingInputs.forEach(input => {
+        // 'input' event for real-time (colors, text), 'change' for selects/checkboxes
+        const eventType = (input.type === 'color' || input.type === 'text') ? 'input' : 'change';
+        input.addEventListener(eventType, triggerAutoUpdate);
     });
 
     function updateStatus(text, isError = false) {
