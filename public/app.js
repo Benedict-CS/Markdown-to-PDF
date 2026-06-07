@@ -54,12 +54,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let debounceTimer = null;
     let currentDocId = 'current';
+    let currentPdfBlobUrl = null;
 
     /**
      * Preview Mode Switching
      */
     function resetPdfPreview() {
-        pdfPreview.src = '';
+        if (currentPdfBlobUrl) {
+            URL.revokeObjectURL(currentPdfBlobUrl);
+            currentPdfBlobUrl = null;
+        }
+        pdfPreview.src = 'about:blank';
         pdfPreview.style.display = 'none';
         if (currentPreviewMode === 'pdf') {
             previewPlaceholder.style.display = 'block';
@@ -78,7 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateWebPreview();
         } else {
             webPreview.style.display = 'none';
-            if (pdfPreview.src && pdfPreview.src.startsWith('blob:')) {
+            // If we have a current PDF blob, show it. Otherwise update.
+            if (currentPdfBlobUrl) {
                 pdfPreview.style.display = 'block';
                 previewPlaceholder.style.display = 'none';
             } else {
@@ -314,7 +320,13 @@ document.addEventListener('DOMContentLoaded', () => {
         updateWebPreview();
         if (currentPreviewMode === 'pdf') {
             const blob = await requestPDF();
-            if (blob) { pdfPreview.src = URL.createObjectURL(blob); pdfPreview.style.display = 'block'; previewPlaceholder.style.display = 'none'; }
+            if (blob) { 
+                if (currentPdfBlobUrl) URL.revokeObjectURL(currentPdfBlobUrl);
+                currentPdfBlobUrl = URL.createObjectURL(blob);
+                pdfPreview.src = currentPdfBlobUrl; 
+                pdfPreview.style.display = 'block'; 
+                previewPlaceholder.style.display = 'none'; 
+            }
         }
     }
 
