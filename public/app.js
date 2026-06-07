@@ -1,11 +1,24 @@
-document.addEventListener('DOMContentLoaded', () => {
     // Initialize CodeMirror Editor
     const editor = CodeMirror.fromTextArea(document.getElementById('markdown-input'), {
         mode: 'markdown',
         lineNumbers: true,
         theme: 'default',
         lineWrapping: true,
+        extraKeys: {
+            "Ctrl-S": (cm) => document.getElementById('convert-btn').click(),
+            "Ctrl-P": (cm) => updatePreview()
+        }
     });
+
+    const cssEditor = CodeMirror.fromTextArea(document.getElementById('custom-css-input'), {
+        mode: 'css',
+        lineNumbers: false,
+        theme: 'default',
+        lineWrapping: true,
+    });
+
+    // Mermaid Initialization
+    mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
     const previewBtn = document.getElementById('preview-btn');
     const convertBtn = document.getElementById('convert-btn');
@@ -32,66 +45,105 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadExampleBtn = document.getElementById('load-example-btn');
     const clearEditorBtn = document.getElementById('clear-editor-btn');
     const uploadBtn = document.getElementById('upload-btn');
+    const downloadMDBtn = document.getElementById('download-md-btn');
     const fileUpload = document.getElementById('file-upload');
     const editorPanel = document.querySelector('.editor-panel');
+    const docSelector = document.getElementById('doc-selector');
+    const newDocBtn = document.getElementById('new-doc-btn');
 
     let debounceTimer = null;
+    let currentDocId = 'current';
 
     /**
      * Persistence: Save content and settings to localStorage
      */
     function saveToLocal() {
-        const data = {
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        docs[currentDocId] = {
+            id: currentDocId,
             markdown: editor.getValue(),
-            settings: {
-                pageFormat: pageFormat.value,
-                showHeader: showHeader.checked,
-                headerTitle: headerTitle.value,
-                showPageNumbers: showPageNumbers.checked,
-                pageFormatStyle: pageFormatStyle.value,
-                showCopyright: showCopyright.checked,
-                copyright_text: copyrightText.value,
-                autoPageBreak: autoPageBreak.checked,
-                breakH1: breakH1.checked,
-                breakH2: breakH2.checked,
-                breakH3: breakH3.checked
-            }
+            customCss: cssEditor.getValue(),
+            lastSaved: new Date().toISOString()
         };
-        localStorage.setItem('md_to_pdf_data', JSON.stringify(data));
+        localStorage.setItem('md_docs', JSON.stringify(docs));
+
+        const globalSettings = {
+            pageFormat: pageFormat.value,
+            showHeader: showHeader.checked,
+            headerTitle: headerTitle.value,
+            showPageNumbers: showPageNumbers.checked,
+            pageFormatStyle: pageFormatStyle.value,
+            showCopyright: showCopyright.checked,
+            copyright_text: copyrightText.value,
+            autoPageBreak: autoPageBreak.checked,
+            breakH1: breakH1.checked,
+            breakH2: breakH2.checked,
+            breakH3: breakH3.checked
+        };
+        localStorage.setItem('md_pdf_settings', JSON.stringify(globalSettings));
+        updateDocSelector();
     }
 
     /**
      * Persistence: Load content and settings from localStorage
      */
     function loadFromLocal() {
-        const saved = localStorage.getItem('md_to_pdf_data');
-        if (saved) {
-            try {
-                const data = JSON.parse(saved);
-                editor.setValue(data.markdown || '');
-                if (data.settings) {
-                    pageFormat.value = data.settings.pageFormat || 'A4';
-                    showHeader.checked = data.settings.showHeader ?? false;
-                    headerTitle.value = data.settings.headerTitle || '';
-                    showPageNumbers.checked = data.settings.showPageNumbers ?? true;
-                    pageFormatStyle.value = data.settings.pageFormatStyle || 'page_of';
-                    showCopyright.checked = data.settings.showCopyright ?? true;
-                    copyrightText.value = data.settings.copyright_text || '';
-                    autoPageBreak.checked = data.settings.autoPageBreak ?? true;
-                    breakH1.checked = data.settings.breakH1 ?? false;
-                    breakH2.checked = data.settings.breakH2 ?? false;
-                    breakH3.checked = data.settings.breakH3 ?? false;
-                }
-                return true;
-            } catch (e) {
-                console.error('Failed to parse saved data', e);
-            }
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        const doc = docs[currentDocId];
+        if (doc) {
+            editor.setValue(doc.markdown || '');
+            cssEditor.setValue(doc.customCss || '');
         }
-        return false;
+
+        const savedSettings = localStorage.getItem('md_pdf_settings');
+        if (savedSettings) {
+            const data = JSON.parse(savedSettings);
+            pageFormat.value = data.pageFormat || 'A4';
+            showHeader.checked = data.showHeader ?? false;
+            headerTitle.value = data.headerTitle || '';
+            showPageNumbers.checked = data.showPageNumbers ?? true;
+            pageFormatStyle.value = data.pageFormatStyle || 'page_of';
+            showCopyright.checked = data.showCopyright ?? true;
+            copyrightText.value = data.copyright_text || '';
+            autoPageBreak.checked = data.autoPageBreak ?? true;
+            breakH1.checked = data.breakH1 ?? false;
+            breakH2.checked = data.breakH2 ?? false;
+            breakH3.checked = data.breakH3 ?? false;
+        }
+        updateDocSelector();
+        return !!doc;
     }
 
+    function updateDocSelector() {
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        docSelector.innerHTML = '';
+        Object.keys(docs).forEach(id => {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = id === 'current' ? 'Primary Draft' : `Draft ${id.substring(0, 5)}`;
+            if (id === currentDocId) opt.selected = true;
+            docSelector.appendChild(opt);
+        });
+    }
+
+    docSelector.addEventListener('change', (e) => {
+        currentDocId = e.target.value;
+        loadFromLocal();
+        updatePreview();
+    });
+
+    newDocBtn.addEventListener('click', () => {
+        const newId = 'doc_' + Date.now();
+        const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
+        docs[newId] = { id: newId, markdown: '', customCss: '', lastSaved: new Date().toISOString() };
+        localStorage.setItem('md_docs', JSON.stringify(docs));
+        currentDocId = newId;
+        loadFromLocal();
+        updateStatus('New draft created.');
+    });
+
     /**
-     * File Upload Logic
+     * File Actions
      */
     function handleFile(file) {
         if (!file || !file.name.endsWith('.md')) {
@@ -109,6 +161,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     uploadBtn.addEventListener('click', () => fileUpload.click());
     fileUpload.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    downloadMDBtn.addEventListener('click', () => {
+        const blob = new Blob([editor.getValue()], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'document.md';
+        a.click();
+        updateStatus('Markdown exported!');
+    });
 
     // Drag and Drop
     editorPanel.addEventListener('dragover', (e) => {
@@ -139,28 +201,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Startup: Load from Local or Example
+    // Startup
     if (!loadFromLocal()) {
         loadExample();
     } else {
         updatePreview();
     }
 
-    // Re-load example on button click
     loadExampleBtn.addEventListener('click', () => {
-        if (confirm('Restore example content? This will overwrite your current text.')) {
-            loadExample();
-        }
+        if (confirm('Restore example content?')) loadExample();
     });
 
-    // Clear editor on button click
     clearEditorBtn.addEventListener('click', () => {
         if (confirm('Clear everything?')) {
             editor.setValue('');
-            pdfPreview.style.display = 'none';
-            previewPlaceholder.style.display = 'block';
+            cssEditor.setValue('');
+            updatePreview();
             updateStatus('Editor cleared.');
-            localStorage.removeItem('md_to_pdf_data');
         }
     });
 
@@ -169,10 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function requestPDF() {
         const markdown = editor.getValue().trim();
-        if (!markdown) {
-            updateStatus('Please enter markdown content.', true);
-            return null;
-        }
+        const customCss = cssEditor.getValue();
+        if (!markdown) return null;
 
         const config = {
             pagination: {
@@ -189,7 +244,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 copyright_text: copyrightText.value,
                 show_page_numbers: showPageNumbers.checked,
                 page_number_format: pageFormatStyle.value
-            }
+            },
+            customCss: customCss
         };
 
         try {
@@ -197,26 +253,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/convert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    markdownContent: markdown,
-                    configOptions: config
-                })
+                body: JSON.stringify({ markdownContent: markdown, configOptions: config })
             });
 
             if (!response.ok) throw new Error('Conversion failed.');
             return await response.blob();
         } catch (error) {
             console.error('API Error:', error);
-            updateStatus('Error: Could not generate PDF.', true);
+            updateStatus('Error generating PDF.', true);
             return null;
         } finally {
             loadingSpinner.style.display = 'none';
         }
     }
 
-    /**
-     * Update the preview iframe
-     */
     async function updatePreview() {
         updateStatus('Updating preview...');
         const blob = await requestPDF();
@@ -229,11 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Download Action
-     */
     convertBtn.addEventListener('click', async () => {
-        updateStatus('Generating PDF for download...');
+        updateStatus('Generating PDF...');
         convertBtn.disabled = true;
         const blob = await requestPDF();
         if (blob) {
@@ -241,38 +288,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const a = document.createElement('a');
             a.href = url;
             a.download = 'document.pdf';
-            document.body.appendChild(a);
             a.click();
-            window.URL.revokeObjectURL(url);
             updateStatus('Download started!');
         }
         convertBtn.disabled = false;
     });
 
-    /**
-     * Manual Preview Button
-     */
     previewBtn.addEventListener('click', updatePreview);
 
-    /**
-     * Debounced Auto-Update Logic
-     */
     function triggerAutoUpdate() {
         if (!autoUpdateToggle.checked) return;
-
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            updatePreview();
-        }, parseInt(updateDelaySelect.value));
+        debounceTimer = setTimeout(() => updatePreview(), parseInt(updateDelaySelect.value));
     }
 
-    // Trigger update on editor change
-    editor.on('change', () => {
-        triggerAutoUpdate();
-        saveToLocal();
-    });
+    editor.on('change', () => { triggerAutoUpdate(); saveToLocal(); });
+    cssEditor.on('change', () => { triggerAutoUpdate(); saveToLocal(); });
 
-    // Trigger update on any setting change
     const settingInputs = [
         pageFormat, showHeader, headerTitle, 
         showPageNumbers, pageFormatStyle, showCopyright, 
@@ -281,20 +313,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     settingInputs.forEach(input => {
         const eventType = (input.type === 'text') ? 'input' : 'change';
-        input.addEventListener(eventType, () => {
-            triggerAutoUpdate();
-            saveToLocal();
-        });
+        input.addEventListener(eventType, () => { triggerAutoUpdate(); saveToLocal(); });
     });
 
     function updateStatus(text, isError = false) {
         statusMsg.textContent = text;
         statusMsg.classList.toggle('error', isError);
-        
-        // Add a slight pop effect when status changes
         statusMsg.style.transform = 'scale(1.05)';
-        setTimeout(() => {
-            statusMsg.style.transform = 'scale(1)';
-        }, 200);
+        setTimeout(() => { statusMsg.style.transform = 'scale(1)'; }, 200);
     }
 });

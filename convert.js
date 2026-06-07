@@ -59,7 +59,8 @@ async function convert(input, options = {}) {
 
     // 4. Assemble CSS
     const baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
-    const customCss = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
+    const customCssFile = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
+    const dynamicCustomCss = options.customCss || '';
 
     const isEnabled = config.pagination.enable_auto_page_break;
     
@@ -81,7 +82,7 @@ async function convert(input, options = {}) {
         ${breakRules}
     `;
     
-    const finalCss = baseCss + '\n' + themeStyles + '\n' + customCss;
+    const finalCss = baseCss + '\n' + themeStyles + '\n' + customCssFile + '\n' + dynamicCustomCss;
 
     // 5. Header/Footer Templates
     const headerTemplate = config.header_footer.show_header ? `

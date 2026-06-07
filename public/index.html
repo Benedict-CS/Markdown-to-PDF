@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/markdown/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    
+    <!-- Mermaid for Diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.2.4/dist/mermaid.min.js"></script>
 </head>
 <body>
     <header class="app-header">
@@ -34,7 +41,16 @@
 
     <main class="app-container">
         <section class="editor-panel">
-            <div class="panel-header">Markdown Editor</div>
+            <div class="panel-header">
+                <span>Markdown Editor</span>
+                <div class="editor-toolbar">
+                    <input type="file" id="file-upload" accept=".md" style="display: none;">
+                    <button id="upload-btn" title="Upload .md File">📂 Upload</button>
+                    <button id="download-md-btn" title="Export .md File">💾 Export</button>
+                    <button id="load-example-btn" title="Restore Example Content">📝 Sample</button>
+                    <button id="clear-editor-btn" class="btn-text-danger" title="Clear Editor">🗑️ Clear</button>
+                </div>
+            </div>
             <textarea id="markdown-input"></textarea>
         </section>
 
@@ -52,6 +68,14 @@
         <section class="controls-panel">
             <div class="panel-header">Settings</div>
             <div class="settings-content">
+                <div class="section-title">📂 Document Library</div>
+                <div class="doc-list-container">
+                    <select id="doc-selector">
+                        <option value="current">Current Draft</option>
+                    </select>
+                    <button id="new-doc-btn" class="btn-secondary">+</button>
+                </div>
+
                 <div class="section-title">✨ Live Preview</div>
                 <div class="control-group checkbox">
                     <input type="checkbox" id="auto-update" checked>
@@ -125,16 +149,16 @@
                     </select>
                 </div>
 
+                <div class="section-title">🎨 Custom CSS</div>
+                <div class="css-editor-container">
+                    <textarea id="custom-css-input" placeholder="/* Write CSS here to override styles */"></textarea>
+                </div>
+
                 <div class="section-title">💡 Pro Tips</div>
                 <div class="tips-box">
-                    <p><strong>Manual Page Break:</strong> Use <code>&lt;div class="page-break"&gt;&lt;/div&gt;</code> to force a new page.</p>
-                    <p><strong>Columns:</strong> Use <code>flex-container</code> and <code>flex-item</code> classes for side-by-side layout.</p>
-                    <div class="editor-actions">
-                        <input type="file" id="file-upload" accept=".md" style="display: none;">
-                        <button id="upload-btn" class="btn-secondary">Upload .md</button>
-                        <button id="load-example-btn" class="btn-secondary">Restore Example</button>
-                        <button id="clear-editor-btn" class="btn-danger">Clear Editor</button>
-                    </div>
+                    <p><strong>Math:</strong> Use <code>$$ E=mc^2 $$</code></p>
+                    <p><strong>Diagrams:</strong> Use <code>```mermaid</code> blocks.</p>
+                    <p><strong>Shortcuts:</strong> <code>Ctrl+S</code> to download PDF.</p>
                 </div>
             </div>
         </section>

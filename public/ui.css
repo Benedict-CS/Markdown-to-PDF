@@ -343,6 +343,77 @@ body {
     margin-bottom: 0.2rem;
 }
 
+/* Toolbar */
+.editor-toolbar {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.editor-toolbar button {
+    background: none;
+    border: 1px solid var(--border-color);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.editor-toolbar button:hover {
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    border-color: var(--accent-color);
+}
+
+.btn-text-danger:hover {
+    color: #d73a49 !important;
+    border-color: #d73a49 !important;
+    background-color: #fff5f5 !important;
+}
+
+/* Document Library */
+.doc-list-container {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#doc-selector {
+    flex: 1;
+}
+
+#new-doc-btn {
+    width: 40px;
+    padding: 0;
+    font-size: 1.2rem;
+}
+
+/* Custom CSS Editor */
+.css-editor-container {
+    height: 150px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background-color: #fff;
+}
+
+.css-editor-container .CodeMirror {
+    height: 100%;
+    font-size: 12px;
+}
+
+#custom-css-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    resize: none;
+    font-family: monospace;
+    font-size: 12px;
+    padding: 0.5rem;
+}
+
+/* Shortcuts & Tips */
 .tips-box code {
     background-color: var(--bg-light);
     padding: 2px 5px;
