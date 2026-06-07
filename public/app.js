@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const autoPageBreak = document.getElementById('auto-page-break');
     const breakH1 = document.getElementById('break-h1');
     const breakH2 = document.getElementById('break-h2');
+    const breakH3 = document.getElementById('break-h3');
     
     const autoUpdateToggle = document.getElementById('auto-update');
     const updateDelaySelect = document.getElementById('update-delay');
@@ -85,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 enable_auto_page_break: autoPageBreak.checked,
                 break_before_h1: breakH1.checked,
                 break_before_h2: breakH2.checked,
+                break_before_h3: breakH3.checked,
                 format: pageFormat.value
             },
             header_footer: {
@@ -178,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingInputs = [
         pageFormat, showHeader, headerTitle, 
         showPageNumbers, pageFormatStyle, showCopyright, 
-        copyrightText, autoPageBreak, breakH1, breakH2
+        copyrightText, autoPageBreak, breakH1, breakH2, breakH3
     ];
 
     settingInputs.forEach(input => {

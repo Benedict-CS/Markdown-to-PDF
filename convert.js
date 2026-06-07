@@ -18,8 +18,8 @@ async function convert(input, options = {}) {
     let config = { 
         pagination: { 
             enable_auto_page_break: true,
-            break_before_h1: true,
-            break_before_h2: true,
+            break_before_h1: false,
+            break_before_h2: false,
             break_before_h3: false,
             format: 'A4', 
             margin: { top: '10mm', right: '15mm', bottom: '12mm', left: '15mm' }
