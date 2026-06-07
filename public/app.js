@@ -120,10 +120,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateDocSelector() {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
         docSelector.innerHTML = '';
+        
+        // Ensure Primary Draft always exists in the object if not present
+        if (!docs['current']) {
+            docs['current'] = { id: 'current', name: 'Primary Draft', markdown: editor.getValue(), customCss: cssEditor.getValue() };
+        }
+
         Object.keys(docs).forEach(id => {
             const opt = document.createElement('option');
             opt.value = id;
-            opt.textContent = id === 'current' ? 'Primary Draft' : `Draft ${id.substring(0, 5)}`;
+            opt.textContent = docs[id].name || (id === 'current' ? 'Primary Draft' : `Untitled ${id.substring(0, 5)}`);
             if (id === currentDocId) opt.selected = true;
             docSelector.appendChild(opt);
         });
@@ -132,17 +138,39 @@ document.addEventListener('DOMContentLoaded', () => {
     docSelector.addEventListener('change', (e) => {
         currentDocId = e.target.value;
         loadFromLocal();
-        updatePreview();
+        
+        // If the switched doc has content, update preview; otherwise clear it
+        if (editor.getValue().trim()) {
+            updatePreview();
+        } else {
+            pdfPreview.style.display = 'none';
+            previewPlaceholder.style.display = 'block';
+        }
     });
 
     newDocBtn.addEventListener('click', () => {
+        const docName = prompt('Enter a name for your new document:', `Draft ${new Date().toLocaleTimeString()}`);
+        if (docName === null) return; // Cancelled
+
         const newId = 'doc_' + Date.now();
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-        docs[newId] = { id: newId, markdown: '', customCss: '', lastSaved: new Date().toISOString() };
+        docs[newId] = { 
+            id: newId, 
+            name: docName || `Untitled ${newId.substring(0, 5)}`,
+            markdown: '', 
+            customCss: '', 
+            lastSaved: new Date().toISOString() 
+        };
         localStorage.setItem('md_docs', JSON.stringify(docs));
         currentDocId = newId;
+        
+        // Load the new empty state
         loadFromLocal();
-        updateStatus('New draft created.');
+        
+        // Clear preview since it's a new empty doc
+        pdfPreview.style.display = 'none';
+        previewPlaceholder.style.display = 'block';
+        updateStatus(`New document "${docName}" created.`);
     });
 
     /**
