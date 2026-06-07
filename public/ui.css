@@ -372,9 +372,7 @@ body {
     height: 100%;
     border: none;
     background-color: transparent;
-    opacity: 0;
-    transition: opacity 0.4s ease-out, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-origin: top center;
+    display: none;
 }
 
 #pdf-preview[style*="display: block"] {
