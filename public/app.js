@@ -29,11 +29,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const autoUpdateToggle = document.getElementById('auto-update');
     const updateDelaySelect = document.getElementById('update-delay');
     const loadExampleBtn = document.getElementById('load-example-btn');
+    const clearEditorBtn = document.getElementById('clear-editor-btn');
 
     let debounceTimer = null;
 
     /**
-     * Load example.md content into the editor on startup
+     * Load example.md content into the editor
      */
     async function loadExample() {
         try {
@@ -45,15 +46,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Failed to load example:', error);
+            updateStatus('Failed to load example.', true);
         }
     }
 
+    // Auto-load on startup
     loadExample();
 
     // Re-load example on button click
     loadExampleBtn.addEventListener('click', () => {
-        if (confirm('This will replace your current content with the example. Continue?')) {
+        if (confirm('Restore example content? This will overwrite your current text.')) {
             loadExample();
+        }
+    });
+
+    // Clear editor on button click
+    clearEditorBtn.addEventListener('click', () => {
+        if (confirm('Clear everything?')) {
+            editor.setValue('');
+            pdfPreview.style.display = 'none';
+            previewPlaceholder.style.display = 'block';
+            updateStatus('Editor cleared.');
         }
     });
 

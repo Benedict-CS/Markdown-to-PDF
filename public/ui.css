@@ -352,6 +352,34 @@ body {
     border: 1px solid var(--border-color);
 }
 
+.editor-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.editor-actions .btn-secondary,
+.editor-actions .btn-danger {
+    flex: 1;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.btn-danger {
+    background-color: #fff;
+    color: #d73a49;
+    border: 1px solid rgba(215, 58, 73, 0.2);
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    background-color: #fff5f5;
+    border-color: #d73a49;
+}
+
 .status-pill {
     padding: 0.35rem 0.85rem;
     border-radius: 20px;
