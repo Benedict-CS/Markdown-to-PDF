@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingSpinner = document.getElementById('loading-spinner');
 
     // Controls
-    const accentColor = document.getElementById('accent-color');
     const pageFormat = document.getElementById('page-format');
     const showHeader = document.getElementById('show-header');
     const headerTitle = document.getElementById('header-title');
@@ -34,23 +33,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let debounceTimer = null;
 
     /**
-     * Update the UI theme color to match the selected accent color
+     * Load example.md content into the editor on startup
      */
-    function updateUITheme(color) {
-        document.documentElement.style.setProperty('--accent-color', color);
-        
-        // Generate a slightly darker version for hover (simplistic approach)
-        // For a real app, you might use a library or a helper function
-        document.documentElement.style.setProperty('--accent-hover', color + 'ee');
+    async function loadExample() {
+        try {
+            const response = await fetch('/api/example');
+            if (response.ok) {
+                const text = await response.text();
+                editor.setValue(text);
+                updatePreview();
+            }
+        } catch (error) {
+            console.error('Failed to load example:', error);
+        }
     }
 
-    // Initialize UI theme
-    updateUITheme(accentColor.value);
-
-    // Sync UI theme when color changes
-    accentColor.addEventListener('input', (e) => {
-        updateUITheme(e.target.value);
-    });
+    loadExample();
 
     /**
      * Common function to call the conversion API
@@ -76,9 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 copyright_text: copyrightText.value,
                 show_page_numbers: showPageNumbers.checked,
                 page_number_format: pageFormatStyle.value
-            },
-            appearance: {
-                accent_color: accentColor.value
             }
         };
 
@@ -161,14 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Trigger update on any setting change
     const settingInputs = [
-        accentColor, pageFormat, showHeader, headerTitle, 
+        pageFormat, showHeader, headerTitle, 
         showPageNumbers, pageFormatStyle, showCopyright, 
         copyrightText, autoPageBreak, breakH1, breakH2
     ];
 
     settingInputs.forEach(input => {
-        // 'input' event for real-time (colors, text), 'change' for selects/checkboxes
-        const eventType = (input.type === 'color' || input.type === 'text') ? 'input' : 'change';
+        const eventType = (input.type === 'text') ? 'input' : 'change';
         input.addEventListener(eventType, triggerAutoUpdate);
     });
 

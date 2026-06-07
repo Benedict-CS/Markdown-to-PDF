@@ -11,6 +11,18 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 /**
+ * API Endpoint: Get Example Markdown
+ */
+app.get('/api/example', (req, res) => {
+    const examplePath = path.join(__dirname, 'example.md');
+    if (fs.existsSync(examplePath)) {
+        res.sendFile(examplePath);
+    } else {
+        res.status(404).send('Example file not found');
+    }
+});
+
+/**
  * API Endpoint: Convert Markdown to PDF
  */
 app.post('/api/convert', async (req, res) => {

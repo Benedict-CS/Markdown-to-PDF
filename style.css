@@ -28,7 +28,7 @@ h1 {
 
 h2 {
     font-size: 1.5em;
-    border-bottom: 2px solid var(--accent-color, #eee);
+    border-bottom: 2px solid #333;
     padding-bottom: 0.3em;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -41,12 +41,12 @@ h2:first-of-type {
 
 h3 {
     font-size: 1.15em;
-    color: var(--accent-color, #0366d6);
+    color: #111;
     page-break-inside: avoid;
 }
 
 a {
-    color: var(--accent-color, #0366d6);
+    color: #0366d6;
     text-decoration: none;
     font-weight: 500;
 }
@@ -200,7 +200,7 @@ li {
 }
 
 blockquote {
-    border-left: 4px solid var(--accent-color, #dfe2e5);
+    border-left: 4px solid #dfe2e5;
     color: #6a737d;
     padding-left: 1em;
     margin: 1em 0;
