@@ -1,62 +1,44 @@
 # 🚀 Elegant Markdown to PDF - Professional Writing Station
 
-A high-end Markdown to PDF converter that transforms simple text into professional, polished documents. Beyond a simple converter, this is a full-featured web-based writing station designed for resumes, technical manuals, and academic papers.
+A high-end Markdown to PDF converter that transforms simple text into professional, polished documents. This is a full-featured web-based writing environment optimized for resumes, technical documentation, and elegant reports.
 
-## 🌟 Superpowers
+## ✨ Key Features
 
-- **🛠️ Document Library**: Manage multiple drafts directly in your browser. Rename, switch, or delete documents with ease.
-- **☁️ Zero-Loss Persistence**: Every keystroke is auto-saved to your browser's local storage. Never lose your work again.
-- **📐 Technical Excellence**:
-    - **KaTeX Support**: Render beautiful LaTeX math formulas (e.g., `$$ E=mc^2 $$`).
-    - **Mermaid Diagrams**: Create flowcharts, sequence diagrams, and Gantt charts directly in Markdown.
-- **⚡ Pro UI/UX**:
-    - **Live Preview**: Near-instant PDF rendering as you type.
-    - **Smart Zoom**: "Fit to width" or fixed scale preview modes.
-    - **Custom Styling**: Support for standard `<style>` tags and HTML/CSS layouts.
-    - **Drag & Drop**: Simply drop a `.md` file into the editor to load it.
-- **📑 Smart Export**: Automatically names your PDF/Markdown files based on your document name or first H1 header.
+- **Extreme Real-Time Preview**: Powered by a "Catch-up" rendering engine and persistent backend browser for near-instant feedback.
+- **Granular Header & Footer**: Independent control over Left and Right quadrants for both header and footer.
+- **Dynamic Variables**: Use `{title}`, `{date}`, or `{time}` to automatically inject document metadata into your headers/footers.
+- **Document Library**: Manage multiple drafts locally. Your work is automatically saved as you type.
+- **Professional Layout**: GitHub-style Markdown rendering with support for Page Breaks, Flexbox layouts, and automatic pagination.
+- **Image Support**: Fully supports local images (relative paths like `./images/demo.jpg`).
+- **Clean Aesthetic**: Modern, distraction-free UI with "Fit" and "100%" viewing modes.
 
-## 🖥️ Web Interface
+## 🛠️ Getting Started
 
-Designed for a focused writing experience:
-- **Left**: Markdown Editor with syntax highlighting.
-- **Middle**: Real-time professional PDF viewer.
-- **Right**: Granular control over headers, footers, pagination, and page formats (A4, Letter, Legal).
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-## 🐳 Docker & VM Deployment (Recommended)
+2. **Start the Station**:
+   ```bash
+   npm start
+   ```
 
-This tool is production-ready. The easiest way to deploy is using Docker, which handles all Chrome/Puppeteer dependencies automatically.
+3. **Access the Interface**:
+   Open `http://localhost:3000` in your browser.
 
-### One-Click Update (VM)
-We provide a dedicated deployment script for easy updates:
-```bash
-git pull
-chmod +x deploy.sh
-./deploy.sh
-```
+## 💡 Pro Tips
 
-### Manual Docker Run
-```bash
-docker build -t elegant-md-pdf .
-docker run -d -p 3000:3000 --name md-pdf-service --restart unless-stopped elegant-md-pdf
-```
-
-## 🛠️ Local Development
-
-1. Install dependencies: `npm install`
-2. Start the server: `npm start`
-3. Access at `http://localhost:3000`
-
-## 🚀 Pro Tips & Shortcuts
-
-- **Manual Page Break**: Use `<div class="page-break"></div>` to force a new page.
-- **Columns**: Use `flex-container` and `flex-item` classes for side-by-side layouts.
-- **Shortcuts**:
-    - `Ctrl + S`: Quick Download PDF
-    - `Ctrl + P`: Force Refresh Preview
+- **Forced Page Break**: Use `<div class="page-break"></div>` to start a new page.
+- **Custom Styling**: Inject CSS directly into your document using `<style>` tags at the top of your Markdown.
+- **Header/Footer Variables**:
+  - `{title}`: The name of the current document.
+  - `{date}`: Current date (YYYY-MM-DD).
+  - `{time}`: Current local time (HH:mm).
 
 ## 🎨 Customization
-You can tweak global defaults in `config.js` or inject styles directly into your document using `<style>` tags at the top of your Markdown.
+
+You can tweak global defaults in `config.js` or modify `style.css` to change the base look of all generated PDFs.
 
 ## 📜 License
 MIT
