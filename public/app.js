@@ -95,8 +95,25 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Configure marked to handle relative images correctly
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
         // Render HTML
         webPreview.innerHTML = marked.parse(markdown);
+
+        // Fix image paths in web preview (ensure relative images in markdown work)
+        const images = webPreview.querySelectorAll('img');
+        images.forEach(img => {
+            const src = img.getAttribute('src');
+            // If it's a relative path and doesn't start with /
+            if (src && !src.startsWith('http') && !src.startsWith('/') && !src.startsWith('data:')) {
+                // Prepend / to make it relative to root where images/ folder lives
+                img.src = '/' + src;
+            }
+        });
 
         // Render Math
         if (window.renderMathInElement) {
@@ -340,10 +357,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updatePreview() {
-        // Always update Web Preview instantly
+        // ALWAYS update Web Preview instantly
         updateWebPreview();
 
-        // Only update PDF if specifically in PDF mode or triggered
+        // PDF Preview logic
         if (currentPreviewMode === 'pdf') {
             const markdown = editor.getValue().trim();
             if (!markdown) {
@@ -380,15 +397,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function triggerAutoUpdate() {
+        // Web Preview is triggered immediately on every keystroke
+        updateWebPreview();
+        saveToLocal();
+
+        // PDF Auto-update only if enabled and in PDF mode
         if (!autoUpdateToggle.checked) return;
+        
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => updatePreview(), parseInt(updateDelaySelect.value));
+        debounceTimer = setTimeout(() => {
+            if (currentPreviewMode === 'pdf') {
+                updatePreview();
+            }
+        }, parseInt(updateDelaySelect.value));
     }
 
-    editor.on('change', () => { triggerAutoUpdate(); saveToLocal(); });
+    editor.on('change', () => { triggerAutoUpdate(); });
     const settingInputs = [pageFormat, showHeader, headerTitle, showPageNumbers, pageFormatStyle, showCopyright, copyrightText, autoPageBreak, breakH1, breakH2, breakH3];
     settingInputs.forEach(input => {
-        input.addEventListener((input.type === 'text' ? 'input' : 'change'), () => { triggerAutoUpdate(); saveToLocal(); });
+        input.addEventListener((input.type === 'text' ? 'input' : 'change'), () => { triggerAutoUpdate(); });
     });
 
     function updateStatus(text, isError = false) {
