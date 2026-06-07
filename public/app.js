@@ -50,6 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const md = editor.getValue().trim();
         if (!md) return null;
 
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const processText = (str) => (str || '').replace(/{date}/g, today);
+
         const config = {
             pagination: { 
                 enable_auto_page_break: get('auto-page-break').checked, 
@@ -60,10 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             header_footer: { 
                 show_header: get('show-header').checked, 
-                header_left: get('header-left-enable').checked ? get('header-left-text').value : '',
-                header_right: get('header-right-enable').checked ? get('header-right-text').value : '',
+                header_left: get('header-left-enable').checked ? processText(get('header-left-text').value) : '',
+                header_right: get('header-right-enable').checked ? processText(get('header-right-text').value) : '',
                 show_footer: get('show-footer').checked,
-                footer_left: get('footer-left-enable').checked ? get('footer-left-text').value : '',
+                footer_left: get('footer-left-enable').checked ? processText(get('footer-left-text').value) : '',
                 footer_right: get('footer-right-enable').checked ? 'PAGE_NUM' : '',
                 page_number_format: get('page-format-style').value
             }
