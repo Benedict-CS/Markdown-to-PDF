@@ -1,14 +1,43 @@
 const { mdToPdf } = require('md-to-pdf');
 const path = require('path');
 const fs = require('fs');
+const puppeteer = require('puppeteer');
+const { marked } = require('marked');
+
+let browserInstance = null;
+
+/**
+ * Gets or creates a persistent browser instance.
+ */
+async function getBrowser() {
+    if (browserInstance && browserInstance.isConnected()) {
+        return browserInstance;
+    }
+    
+    browserInstance = await puppeteer.launch({
+        headless: 'new',
+        args: [
+            '--no-sandbox', 
+            '--disable-setuid-sandbox', 
+            '--disable-dev-shm-usage', 
+            '--disable-accelerated-2d-canvas', 
+            '--no-first-run', 
+            '--no-zygote', 
+            '--single-process', 
+            '--disable-gpu'
+        ]
+    });
+    
+    return browserInstance;
+}
 
 /**
  * Core conversion logic.
- * Supports both file paths and raw markdown content.
+ * Uses a persistent browser instance for maximum performance.
  */
 async function convert(input, options = {}) {
     const isFile = input && fs.existsSync(path.resolve(input)) && input.endsWith('.md');
-    const inputSource = isFile ? { path: path.resolve(input) } : { content: input };
+    const markdownContent = isFile ? fs.readFileSync(path.resolve(input), 'utf8') : input;
 
     const cssPath = path.resolve(__dirname, 'style.css');
     const customCssPath = path.resolve(__dirname, 'custom.css');
@@ -57,13 +86,13 @@ async function convert(input, options = {}) {
     // 3. Override with dynamic options (from API or CLI)
     mergeConfig(config, options);
 
-    // 4. Assemble CSS
+    // 4. Assemble HTML and CSS
+    const htmlBody = marked.parse(markdownContent);
     const baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
     const customCssFile = (config.features.use_custom_css && fs.existsSync(customCssPath)) ? fs.readFileSync(customCssPath, 'utf8') : '';
     const dynamicCustomCss = options.customCss || '';
 
     const isEnabled = config.pagination.enable_auto_page_break;
-    
     const breakRules = `
         h1 { page-break-before: ${(isEnabled && config.pagination.break_before_h1) ? 'always' : 'auto'} !important; }
         h2 { page-break-before: ${(isEnabled && config.pagination.break_before_h2) ? 'always' : 'auto'} !important; }
@@ -83,6 +112,19 @@ async function convert(input, options = {}) {
     `;
     
     const finalCss = baseCss + '\n' + themeStyles + '\n' + customCssFile + '\n' + dynamicCustomCss;
+
+    const fullHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>${finalCss}</style>
+        </head>
+        <body class="markdown-body">
+            ${htmlBody}
+        </body>
+        </html>
+    `;
 
     // 5. Header/Footer Templates
     const headerTemplate = config.header_footer.show_header ? `
@@ -111,31 +153,22 @@ async function convert(input, options = {}) {
     const enableHeaderFooter = config.header_footer.show_header || config.header_footer.show_copyright || config.header_footer.show_page_numbers;
 
     try {
-        const pdf = await mdToPdf(inputSource, { 
-            css: finalCss,
-            pdf_options: {
-                format: config.pagination.format,
-                margin: config.pagination.margin,
-                displayHeaderFooter: enableHeaderFooter,
-                headerTemplate: headerTemplate,
-                footerTemplate: footerTemplate,
-                waitUntil: 'load', 
-            },
-            launch_options: {
-                args: [
-                    '--no-sandbox', 
-                    '--disable-setuid-sandbox', 
-                    '--disable-dev-shm-usage', 
-                    '--disable-accelerated-2d-canvas', 
-                    '--no-first-run', 
-                    '--no-zygote', 
-                    '--single-process', 
-                    '--disable-gpu'
-                ]
-            }
+        const browser = await getBrowser();
+        const page = await browser.newPage();
+        
+        await page.setContent(fullHtml, { waitUntil: 'load' });
+        
+        const pdfBuffer = await page.pdf({
+            format: config.pagination.format,
+            margin: config.pagination.margin,
+            displayHeaderFooter: enableHeaderFooter,
+            headerTemplate: headerTemplate,
+            footerTemplate: footerTemplate,
+            printBackground: true
         });
 
-        return pdf;
+        await page.close();
+        return { content: pdfBuffer };
     } catch (error) {
         console.error('❌ Error during conversion:', error);
         return null;

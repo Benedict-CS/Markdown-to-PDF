@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentDocId = 'current';
     let currentPdfBlobUrl = null;
     let isUpdating = false;
+    let needsUpdate = false;
 
     /**
      * Preview Mode Switching
@@ -70,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPreviewMode === 'pdf') {
             previewPlaceholder.style.display = 'block';
         }
+        needsUpdate = false;
     }
 
     function switchPreviewMode(mode) {
@@ -319,12 +321,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updatePreview() {
-        if (isUpdating) return;
+        if (isUpdating) {
+            needsUpdate = true;
+            return;
+        }
+
         clearTimeout(debounceTimer);
         updateWebPreview();
         
         if (currentPreviewMode === 'pdf') {
             isUpdating = true;
+            needsUpdate = false;
+            
             const blob = await requestPDF();
             if (blob) { 
                 if (currentPdfBlobUrl) URL.revokeObjectURL(currentPdfBlobUrl);
@@ -333,7 +341,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdfPreview.style.display = 'block'; 
                 previewPlaceholder.style.display = 'none'; 
             }
+            
             isUpdating = false;
+            // Catch up if content changed during rendering
+            if (needsUpdate) {
+                updatePreview();
+            }
         }
     }
 
