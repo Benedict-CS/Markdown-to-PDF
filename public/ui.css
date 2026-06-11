@@ -499,16 +499,25 @@ a {
     color: #000000 !important;
 }
 
-/* Line-number gutter: keep CodeMirror's own width calculation — overriding
-   padding/min-width here makes numbers overflow the gutter and cover the
-   editor text. Only restyle colors and keep digits monospaced. */
+/* Line-number gutter. The padStart-3 formatter in app.js already pads each
+   number to a stable width; we just paint the gutter and keep a clear
+   right-padding so the digits never touch the editor text. The CodeMirror
+   sizer auto-measures the gutter, so we let it do its job — we only adjust
+   colors and the right-side breathing room.
+
+   The trailing padding on .CodeMirror-linenumber is critical: without it
+   the rightmost digit sits flush against the editor content area, and on
+   first paint (before the editor refresh() fires) it visually covers the
+   leading characters of each line. */
 .CodeMirror-gutters {
     background: #fafafa !important;
     border-right: 1px solid #e5e5e5 !important;
 }
 .CodeMirror-linenumber {
     color: #999999 !important;
+    padding-right: 10px !important;
     font-variant-numeric: tabular-nums;
+    white-space: pre;
 }
 .CodeMirror-cursor {
     border-left-color: #000000 !important;

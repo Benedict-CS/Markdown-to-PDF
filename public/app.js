@@ -47,6 +47,16 @@ document.addEventListener('DOMContentLoaded', () => {
         lineNumberFormatter: n => String(n).padStart(3, ' ')
     });
     
+    // CodeMirror measures the gutter at construction time. If our CSS or webfont
+    // applies any later (or the cached stylesheet wins on first paint), the sizer
+    // margin-left ends up too small and line numbers visually cover the first
+    // characters of each line. Re-measure once everything is settled.
+    requestAnimationFrame(() => editor.refresh());
+    window.addEventListener('load', () => editor.refresh());
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => editor.refresh());
+    }
+
     editor.on('change', () => {
         triggerAutoUpdate();
     });
