@@ -473,45 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================================
-    // 10. Theme toggle — Light / Dark / System
-    // ============================================================
-    const themeBtn = get('theme-toggle');
-    function getTheme() {
-        return localStorage.getItem('md_theme') || 'system';
-    }
-    function applyTheme(theme) {
-        if (theme === 'light' || theme === 'dark') {
-            document.documentElement.setAttribute('data-theme', theme);
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-        }
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const effective = theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme;
-        const icon = theme === 'system' ? '🌓' : (effective === 'dark' ? '🌙' : '☀️');
-        if (themeBtn) {
-            themeBtn.querySelector('.theme-icon').textContent = icon;
-            const label = theme === 'system' ? 'System' : (effective === 'dark' ? 'Dark' : 'Light');
-            themeBtn.title = 'Theme: ' + label + ' (click to cycle, Ctrl+Shift+L)';
-            themeBtn.setAttribute('aria-label', 'Theme: ' + label);
-        }
-    }
-    function cycleTheme() {
-        const order = ['light', 'dark', 'system'];
-        const next = order[(order.indexOf(getTheme()) + 1) % order.length];
-        if (next === 'system') localStorage.removeItem('md_theme');
-        else localStorage.setItem('md_theme', next);
-        applyTheme(next);
-        toast('Theme: ' + next[0].toUpperCase() + next.slice(1), 'info');
-        if (editor) setTimeout(() => editor.refresh(), 50);
-    }
-    applyTheme(getTheme());
-    if (themeBtn) themeBtn.addEventListener('click', cycleTheme);
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (getTheme() === 'system') applyTheme('system');
-    });
-
-    // ============================================================
-    // 11. Editor status footer — word/char/line + save indicator
+    // 10. Editor status footer — word/char/line + save indicator
     // ============================================================
     const statWords = get('stat-words');
     const statChars = get('stat-chars');
@@ -673,11 +635,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.shiftKey && (e.key === 'P' || e.key === 'p')) {
             e.preventDefault();
             elements.convertBtn.click();
-        }
-        // Ctrl/Cmd+Shift+L → cycle theme
-        if (e.shiftKey && (e.key === 'L' || e.key === 'l')) {
-            e.preventDefault();
-            cycleTheme();
         }
         // Ctrl/Cmd+/ → toggle live preview
         if (e.key === '/') {
