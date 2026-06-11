@@ -499,21 +499,16 @@ a {
     color: #000000 !important;
 }
 
-/* Line-number gutter: fixed width so wrapping/double-digit transitions don't shift layout */
+/* Line-number gutter: keep CodeMirror's own width calculation — overriding
+   padding/min-width here makes numbers overflow the gutter and cover the
+   editor text. Only restyle colors and keep digits monospaced. */
 .CodeMirror-gutters {
     background: #fafafa !important;
     border-right: 1px solid #e5e5e5 !important;
 }
-.CodeMirror-linenumbers {
-    min-width: 2.75em;
-}
 .CodeMirror-linenumber {
     color: #999999 !important;
-    padding: 0 8px 0 6px !important;
-    min-width: 2em;
-    text-align: right;
     font-variant-numeric: tabular-nums;
-    box-sizing: border-box;
 }
 .CodeMirror-cursor {
     border-left-color: #000000 !important;
