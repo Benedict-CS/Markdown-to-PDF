@@ -36,10 +36,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Editor Init
     editor = CodeMirror.fromTextArea(get('markdown-input'), {
-        mode: 'markdown', 
-        lineNumbers: true, 
-        theme: 'default', 
-        lineWrapping: true
+        mode: 'markdown',
+        lineNumbers: true,
+        theme: 'default',
+        lineWrapping: true,
+        // Pad the line number so the gutter width is reserved up-front. Otherwise
+        // CodeMirror grows the gutter when the doc crosses 9→10 or 99→100 lines,
+        // which visibly shifts the editor content.   is a non-breaking space
+        // (a regular space at the start of a gutter cell gets collapsed).
+        lineNumberFormatter: n => String(n).padStart(3, ' ')
     });
     
     editor.on('change', () => {
