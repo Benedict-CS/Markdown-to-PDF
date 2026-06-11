@@ -358,6 +358,74 @@ a {
     border-left: 1px solid var(--border-color);
 }
 
+/* ============================================================
+   Settings drawer (desktop) — hidden by default, slides in from
+   the right when the ⚙ Settings button is clicked. The editor +
+   preview keep 100% of the horizontal space until summoned.
+   Mobile keeps its tabbar-driven full-screen behavior below.
+   ============================================================ */
+.settings-backdrop {
+    position: fixed;
+    inset: var(--header-height) 0 0 0;
+    background: rgba(15, 23, 42, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--t-base) var(--ease);
+    z-index: 79;
+}
+.settings-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.settings-close {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.95rem;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.settings-close:hover {
+    background-color: var(--bg-muted);
+    color: var(--text-main);
+}
+
+@media (min-width: 901px) {
+    .controls-panel {
+        position: fixed;
+        top: var(--header-height);
+        right: 0;
+        bottom: 0;
+        width: min(380px, 90vw);
+        z-index: 80;
+        transform: translateX(100%);
+        transition: transform var(--t-base) var(--ease-out);
+        box-shadow: var(--shadow-lg);
+        border-left: 1px solid var(--border-color);
+    }
+    .controls-panel.is-open {
+        transform: translateX(0);
+    }
+    /* The preview-settings splitter only made sense when the panel
+       lived inline. The drawer overlays the preview, so hide it. */
+    .splitter[data-split="preview-settings"] {
+        display: none;
+    }
+}
+
+/* On mobile (<=900px) the drawer falls back to the existing tabbar
+   pattern, so the close (✕) button and the header toggle are
+   redundant — the tab itself switches panels. */
+@media (max-width: 900px) {
+    .settings-close { display: none; }
+    .settings-backdrop { display: none; }
+    #settings-toggle { display: none; }
+}
+
 .panel-header {
     font-size: 0.7rem;
     font-weight: 700;

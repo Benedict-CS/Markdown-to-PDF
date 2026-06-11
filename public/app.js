@@ -422,6 +422,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ============================================================
+    // 7b. Settings drawer (desktop) — slides in on demand so the
+    //     editor + preview get the full width by default.
+    // ============================================================
+    const settingsPanel = get('settings-panel');
+    const settingsBackdrop = get('settings-backdrop');
+    const settingsToggle = get('settings-toggle');
+    const settingsClose = get('settings-close');
+    const isDesktop = () => window.matchMedia('(min-width: 901px)').matches;
+
+    function openSettings() {
+        if (!isDesktop()) return;
+        settingsPanel.classList.add('is-open');
+        settingsBackdrop.classList.add('is-visible');
+        settingsToggle.setAttribute('aria-expanded', 'true');
+    }
+    function closeSettings() {
+        settingsPanel.classList.remove('is-open');
+        settingsBackdrop.classList.remove('is-visible');
+        if (settingsToggle) settingsToggle.setAttribute('aria-expanded', 'false');
+    }
+    function toggleSettings() {
+        if (settingsPanel.classList.contains('is-open')) closeSettings();
+        else openSettings();
+    }
+    if (settingsToggle) settingsToggle.addEventListener('click', toggleSettings);
+    if (settingsClose) settingsClose.addEventListener('click', closeSettings);
+    if (settingsBackdrop) settingsBackdrop.addEventListener('click', closeSettings);
+    // Close on Esc when the drawer is open
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && settingsPanel.classList.contains('is-open')) {
+            closeSettings();
+        }
+    });
+    // Resize: if we drop to mobile while the drawer was open, drop the
+    // overlay state so the mobile tabbar takes over cleanly.
+    window.addEventListener('resize', () => {
+        if (!isDesktop()) closeSettings();
+    });
+
+    // ============================================================
     // 8. Toast notifications
     // ============================================================
     const toastContainer = get('toast-container');
@@ -657,6 +697,11 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.autoUpdate.checked = !elements.autoUpdate.checked;
             elements.autoUpdate.dispatchEvent(new Event('change'));
             toast('Live preview ' + (elements.autoUpdate.checked ? 'on' : 'off'), 'info');
+        }
+        // Ctrl/Cmd+, → toggle settings drawer
+        if (e.key === ',') {
+            e.preventDefault();
+            toggleSettings();
         }
     });
 });
