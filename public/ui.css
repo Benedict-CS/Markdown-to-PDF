@@ -65,82 +65,6 @@
         "JetBrains Mono", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
-/* Dark mode — applies via system preference (when no override) or [data-theme="dark"] */
-.theme-dark-vars,
-:root[data-theme="dark"] {
-    --bg-app: #0d1117;
-    --bg-elevated: #161b22;
-    --bg-muted: #161b22;
-    --bg-subtle: #11161d;
-    --bg-canvas: #010409;
-    --bg-preview-stage: #010409;
-
-    --border-color: #30363d;
-    --border-strong: #444c56;
-    --divider: #21262d;
-
-    --text-main: #e6edf3;
-    --text-muted: #9198a1;
-    --text-soft: #6e7681;
-    --text-inverse: #0d1117;
-
-    --accent: #4493f8;
-    --accent-hover: #58a6ff;
-    --accent-soft: rgba(56, 139, 253, 0.15);
-    --accent-soft-border: rgba(56, 139, 253, 0.4);
-
-    --success: #3fb950;
-    --success-soft: rgba(46, 160, 67, 0.15);
-    --danger: #f85149;
-    --danger-soft: rgba(248, 81, 73, 0.15);
-    --warning: #d29922;
-    --warning-soft: rgba(187, 128, 9, 0.15);
-
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.3);
-    --shadow-focus: 0 0 0 3px rgba(56, 139, 253, 0.4);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]):not([data-theme="dark"]) {
-        --bg-app: #0d1117;
-        --bg-elevated: #161b22;
-        --bg-muted: #161b22;
-        --bg-subtle: #11161d;
-        --bg-canvas: #010409;
-        --bg-preview-stage: #010409;
-
-        --border-color: #30363d;
-        --border-strong: #444c56;
-        --divider: #21262d;
-
-        --text-main: #e6edf3;
-        --text-muted: #9198a1;
-        --text-soft: #6e7681;
-        --text-inverse: #0d1117;
-
-        --accent: #4493f8;
-        --accent-hover: #58a6ff;
-        --accent-soft: rgba(56, 139, 253, 0.15);
-        --accent-soft-border: rgba(56, 139, 253, 0.4);
-
-        --success: #3fb950;
-        --success-soft: rgba(46, 160, 67, 0.15);
-        --danger: #f85149;
-        --danger-soft: rgba(248, 81, 73, 0.15);
-        --warning: #d29922;
-        --warning-soft: rgba(187, 128, 9, 0.15);
-
-        --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
-        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
-        --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.3);
-        --shadow-focus: 0 0 0 3px rgba(56, 139, 253, 0.4);
-    }
-}
-
 /* Reset */
 *, *::before, *::after {
     box-sizing: border-box;
@@ -563,7 +487,7 @@ a {
 }
 
 /* ============================================================
-   CodeMirror
+   CodeMirror — monochrome black & white
    ============================================================ */
 .CodeMirror {
     flex: 1;
@@ -571,42 +495,49 @@ a {
     font-family: var(--font-mono);
     font-size: 14px;
     line-height: 1.6;
-    background: var(--bg-app) !important;
-    color: var(--text-main) !important;
+    background: #ffffff !important;
+    color: #000000 !important;
 }
 
-/* CodeMirror dark theming — apply for explicit dark mode or system dark when no override */
-:root[data-theme="dark"] .CodeMirror,
-:root[data-theme="dark"] .CodeMirror-gutters {
-    background: var(--bg-app) !important;
-    color: var(--text-main) !important;
-    border-color: var(--border-color) !important;
+/* Line-number gutter: fixed width so wrapping/double-digit transitions don't shift layout */
+.CodeMirror-gutters {
+    background: #fafafa !important;
+    border-right: 1px solid #e5e5e5 !important;
 }
-:root[data-theme="dark"] .CodeMirror-linenumber { color: var(--text-soft) !important; }
-:root[data-theme="dark"] .CodeMirror-cursor { border-left-color: var(--text-main) !important; }
-:root[data-theme="dark"] .CodeMirror-selected { background: rgba(56, 139, 253, 0.25) !important; }
-:root[data-theme="dark"] .cm-s-default .cm-header { color: var(--accent) !important; }
-:root[data-theme="dark"] .cm-s-default .cm-comment { color: var(--text-soft) !important; }
-:root[data-theme="dark"] .cm-s-default .cm-string { color: #a5d6ff !important; }
-:root[data-theme="dark"] .cm-s-default .cm-keyword { color: #ff7b72 !important; }
-:root[data-theme="dark"] .cm-s-default .cm-link { color: #79c0ff !important; }
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]):not([data-theme="dark"]) .CodeMirror,
-    :root:not([data-theme="light"]):not([data-theme="dark"]) .CodeMirror-gutters {
-        background: var(--bg-app) !important;
-        color: var(--text-main) !important;
-        border-color: var(--border-color) !important;
-    }
-    :root:not([data-theme="light"]):not([data-theme="dark"]) .CodeMirror-linenumber { color: var(--text-soft) !important; }
-    :root:not([data-theme="light"]):not([data-theme="dark"]) .CodeMirror-cursor { border-left-color: var(--text-main) !important; }
-    :root:not([data-theme="light"]):not([data-theme="dark"]) .CodeMirror-selected { background: rgba(56, 139, 253, 0.25) !important; }
-    :root:not([data-theme="light"]):not([data-theme="dark"]) .cm-s-default .cm-header { color: var(--accent) !important; }
-    :root:not([data-theme="light"]):not([data-theme="dark"]) .cm-s-default .cm-comment { color: var(--text-soft) !important; }
-    :root:not([data-theme="light"]):not([data-theme="dark"]) .cm-s-default .cm-string { color: #a5d6ff !important; }
-    :root:not([data-theme="light"]):not([data-theme="dark"]) .cm-s-default .cm-keyword { color: #ff7b72 !important; }
-    :root:not([data-theme="light"]):not([data-theme="dark"]) .cm-s-default .cm-link { color: #79c0ff !important; }
+.CodeMirror-linenumbers {
+    min-width: 2.75em;
 }
+.CodeMirror-linenumber {
+    color: #999999 !important;
+    padding: 0 8px 0 6px !important;
+    min-width: 2em;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    box-sizing: border-box;
+}
+.CodeMirror-cursor {
+    border-left-color: #000000 !important;
+}
+.CodeMirror-selected {
+    background: #d6d6d6 !important;
+}
+/* Disable syntax color in editor — keep it monochrome */
+.cm-s-default .cm-header,
+.cm-s-default .cm-comment,
+.cm-s-default .cm-string,
+.cm-s-default .cm-keyword,
+.cm-s-default .cm-link,
+.cm-s-default .cm-variable,
+.cm-s-default .cm-variable-2,
+.cm-s-default .cm-property,
+.cm-s-default .cm-number,
+.cm-s-default .cm-atom,
+.cm-s-default .cm-tag,
+.cm-s-default .cm-attribute,
+.cm-s-default .cm-quote {
+    color: #000000 !important;
+}
+.cm-s-default .cm-comment { color: #888888 !important; }
 
 /* ============================================================
    Preview panel
@@ -1077,42 +1008,6 @@ a {
     .preview-panel { background: #fff !important; }
     #preview-container { padding: 0 !important; }
     #web-preview { box-shadow: none !important; max-width: none !important; padding: 0 !important; }
-}
-
-/* ============================================================
-   Theme toggle button
-   ============================================================ */
-.theme-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    width: 34px;
-    height: 34px;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-size: 1rem;
-    line-height: 1;
-    transition: background-color var(--t-base) var(--ease),
-                color var(--t-base) var(--ease),
-                border-color var(--t-base) var(--ease);
-    position: relative;
-}
-
-.theme-toggle:hover {
-    background-color: var(--bg-muted);
-    color: var(--text-main);
-    border-color: var(--border-strong);
-}
-
-.theme-toggle .theme-icon {
-    transition: transform var(--t-slow) var(--ease-out);
-}
-
-.theme-toggle:active .theme-icon {
-    transform: rotate(180deg) scale(0.9);
 }
 
 /* ============================================================
