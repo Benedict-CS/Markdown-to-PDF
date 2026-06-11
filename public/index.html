@@ -2,8 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0969da" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+    <meta name="description" content="Convert Markdown to professional PDF with live preview, custom layout, and pagination control.">
     <title>Elegant Markdown to PDF</title>
+    <script>
+        // Apply saved theme before CSS parses to avoid flash
+        (function() {
+            try {
+                var t = localStorage.getItem('md_theme');
+                if (t === 'light' || t === 'dark') {
+                    document.documentElement.setAttribute('data-theme', t);
+                }
+            } catch (e) {}
+        })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="ui.css">
     <!-- CodeMirror for Syntax Highlighting -->
@@ -26,7 +40,7 @@
 <body>
     <header class="app-header">
         <div class="header-left">
-            <div class="logo">🚀 Elegant MD-to-PDF</div>
+            <div class="logo"><span aria-hidden="true">🚀</span><span class="logo-text">Elegant MD-to-PDF</span></div>
         </div>
         
         <div class="header-center">
@@ -38,9 +52,12 @@
         </div>
 
         <div class="header-right">
-            <a href="https://github.com/Benedict-CS/Markdown-to-PDF" target="_blank" class="github-link">
-                <svg height="18" viewBox="0 0 16 16" width="18"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-                GitHub
+            <button id="theme-toggle" type="button" class="theme-toggle" title="Toggle theme (Ctrl+Shift+L)" aria-label="Toggle theme">
+                <span class="theme-icon" aria-hidden="true">🌓</span>
+            </button>
+            <a href="https://github.com/Benedict-CS/Markdown-to-PDF" target="_blank" rel="noopener" class="github-link" aria-label="GitHub repository">
+                <svg height="18" viewBox="0 0 16 16" width="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+                <span>GitHub</span>
             </a>
             <div class="actions">
                 <button id="preview-btn" class="btn-secondary">Update Preview</button>
@@ -49,8 +66,8 @@
         </div>
     </header>
 
-    <main class="app-container">
-        <section class="editor-panel">
+    <main class="app-container" id="app-container">
+        <section class="editor-panel is-active" data-panel="editor">
             <div class="panel-header">
                 <span>Markdown Editor</span>
                 <div class="editor-toolbar">
@@ -76,9 +93,19 @@
                 </div>
             </div>
             <textarea id="markdown-input"></textarea>
+            <div class="editor-footer">
+                <div class="stats">
+                    <span><strong id="stat-words">0</strong>words</span>
+                    <span><strong id="stat-chars">0</strong>chars</span>
+                    <span><strong id="stat-lines">0</strong>lines</span>
+                </div>
+                <span id="save-indicator" class="save-indicator">Idle</span>
+            </div>
         </section>
 
-        <section class="preview-panel">
+        <div class="splitter" data-split="editor-preview" role="separator" aria-orientation="vertical"></div>
+
+        <section class="preview-panel" data-panel="preview">
             <div class="panel-header">
                 <div class="header-title-group">
                     <div class="preview-mode-toggle">
@@ -98,7 +125,9 @@
             </div>
         </section>
 
-        <section class="controls-panel">
+        <div class="splitter" data-split="preview-settings" role="separator" aria-orientation="vertical"></div>
+
+        <section class="controls-panel" data-panel="settings">
             <div class="panel-header">Settings</div>
             <div class="settings-content">
                 <div class="section-title" style="margin-top: 0;">💡 Pro Tips</div>
@@ -189,6 +218,33 @@
             </div>
         </section>
     </main>
+
+    <nav class="mobile-tabbar" role="tablist" aria-label="Panels">
+        <button type="button" class="mobile-tab active" data-target="editor" role="tab" aria-selected="true">
+            <span class="tab-icon" aria-hidden="true">✏️</span>
+            <span>Editor</span>
+        </button>
+        <button type="button" class="mobile-tab" data-target="preview" role="tab" aria-selected="false">
+            <span class="tab-icon" aria-hidden="true">👁️</span>
+            <span>Preview</span>
+        </button>
+        <button type="button" class="mobile-tab" data-target="settings" role="tab" aria-selected="false">
+            <span class="tab-icon" aria-hidden="true">⚙️</span>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <div class="dropzone-overlay" aria-hidden="true">
+        <div class="dropzone-message">
+            <span class="drop-icon" aria-hidden="true">📥</span>
+            <span>Drop file to load</span>
+            <span class="drop-sub">.md replaces editor · images insert at cursor</span>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+    <div id="modal-root"></div>
 
     <script src="app.js"></script>
 </body>

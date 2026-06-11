@@ -252,8 +252,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     elements.deleteDocBtn.onclick = () => {
         const docs = JSON.parse(localStorage.getItem('md_docs') || '{}');
-        if (Object.keys(docs).length <= 1) return alert('Keep at least one doc.');
-        if (confirm('Delete current document?')) {
+        if (Object.keys(docs).length <= 1) return toast('Keep at least one document.', 'warning');
+        confirmDialog({
+            title: 'Delete document?',
+            message: `"${docs[currentDocId]?.name || 'Document'}" will be permanently removed.`,
+            danger: true,
+            confirmText: 'Delete'
+        }).then(ok => {
+            if (!ok) return;
             delete docs[currentDocId];
             localStorage.setItem('md_docs', JSON.stringify(docs));
             currentDocId = Object.keys(docs)[0];
@@ -261,7 +267,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateDocSelector();
             resetPdfPreview();
             updatePreview();
-        }
+            toast('Document deleted', 'success');
+        });
     };
 
     // Toolbar Actions
@@ -298,11 +305,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     editor.replaceSelection(snippet);
                     triggerAutoUpdate();
                 } else {
-                    alert('Upload failed: ' + (data.error || 'Unknown error'));
+                    toast('Upload failed: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (err) {
                 console.error('Image upload failed:', err);
-                alert('Server Error during image upload');
+                toast('Server error during image upload', 'error');
             } finally {
                 elements.loadingSpinner.style.display = 'none';
                 elements.imageUpload.value = ''; // Reset input
@@ -320,9 +327,30 @@ document.addEventListener('DOMContentLoaded', () => {
         a.click();
     };
     elements.loadExampleBtn.onclick = () => {
-        if (confirm('Restore example?')) fetch('/api/example').then(r => r.text()).then(t => { editor.setValue(t); resetPdfPreview(); updatePreview(); });
+        confirmDialog({
+            title: 'Restore sample document?',
+            message: 'Your current draft will be replaced with the bundled example.',
+            confirmText: 'Restore'
+        }).then(ok => {
+            if (!ok) return;
+            fetch('/api/example').then(r => r.text()).then(t => {
+                editor.setValue(t); resetPdfPreview(); updatePreview();
+                toast('Sample restored', 'success');
+            });
+        });
     };
-    elements.clearEditorBtn.onclick = () => { if (confirm('Clear editor?')) { editor.setValue(''); resetPdfPreview(); updatePreview(); } };
+    elements.clearEditorBtn.onclick = () => {
+        confirmDialog({
+            title: 'Clear editor?',
+            message: 'All current content will be removed. This cannot be undone.',
+            danger: true,
+            confirmText: 'Clear'
+        }).then(ok => {
+            if (!ok) return;
+            editor.setValue(''); resetPdfPreview(); updatePreview();
+            toast('Editor cleared', 'success');
+        });
+    };
 
     document.querySelectorAll('.settings-content input, .settings-content select, #auto-update').forEach(el => {
         const ev = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
@@ -359,4 +387,304 @@ document.addEventListener('DOMContentLoaded', () => {
     
     applyZoomStyles();
     updatePreview();
+
+    // 7. Mobile tabbar — switch which panel is visible at <=900px
+    document.querySelectorAll('.mobile-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.target;
+            document.querySelectorAll('.mobile-tab').forEach(t => {
+                const on = t === tab;
+                t.classList.toggle('active', on);
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            document.querySelectorAll('[data-panel]').forEach(p => {
+                p.classList.toggle('is-active', p.dataset.panel === target);
+            });
+            if (target === 'editor' && editor) {
+                setTimeout(() => editor.refresh(), 50);
+            }
+        });
+    });
+
+    // ============================================================
+    // 8. Toast notifications
+    // ============================================================
+    const toastContainer = get('toast-container');
+    const TOAST_ICONS = { success: '✅', error: '⛔', warning: '⚠️', info: 'ℹ️' };
+
+    function toast(msg, type) {
+        if (!toastContainer) return;
+        type = type || 'info';
+        const el = document.createElement('div');
+        el.className = 'toast toast-' + type;
+        el.innerHTML = '<span class="toast-icon">' + (TOAST_ICONS[type] || TOAST_ICONS.info) +
+            '</span><span class="toast-msg"></span>';
+        el.querySelector('.toast-msg').textContent = msg;
+        toastContainer.appendChild(el);
+        setTimeout(() => {
+            el.classList.add('toast-leaving');
+            el.addEventListener('animationend', () => el.remove(), { once: true });
+        }, type === 'error' ? 4500 : 2800);
+    }
+
+    // ============================================================
+    // 9. Confirm modal — Promise<boolean>
+    // ============================================================
+    function confirmDialog(opts) {
+        opts = opts || {};
+        const title = opts.title || 'Are you sure?';
+        const message = opts.message || '';
+        const confirmText = opts.confirmText || 'Confirm';
+        const cancelText = opts.cancelText || 'Cancel';
+        const danger = !!opts.danger;
+        return new Promise(resolve => {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            backdrop.innerHTML =
+                '<div class="modal-card" role="dialog" aria-modal="true">' +
+                '<h3></h3><p></p>' +
+                '<div class="modal-actions">' +
+                '<button type="button" class="btn-secondary" data-act="cancel"></button>' +
+                '<button type="button" data-act="ok"></button>' +
+                '</div></div>';
+            backdrop.querySelector('h3').textContent = title;
+            backdrop.querySelector('p').textContent = message;
+            const cancelBtn = backdrop.querySelector('[data-act="cancel"]');
+            const okBtn = backdrop.querySelector('[data-act="ok"]');
+            cancelBtn.textContent = cancelText;
+            okBtn.textContent = confirmText;
+            okBtn.className = danger ? 'btn-danger' : 'btn-primary';
+            const close = (val) => {
+                document.removeEventListener('keydown', onKey);
+                backdrop.remove();
+                resolve(val);
+            };
+            const onKey = (e) => {
+                if (e.key === 'Escape') close(false);
+                if (e.key === 'Enter') close(true);
+            };
+            backdrop.addEventListener('click', e => { if (e.target === backdrop) close(false); });
+            cancelBtn.onclick = () => close(false);
+            okBtn.onclick = () => close(true);
+            document.addEventListener('keydown', onKey);
+            get('modal-root').appendChild(backdrop);
+            setTimeout(() => okBtn.focus(), 50);
+        });
+    }
+
+    // ============================================================
+    // 10. Theme toggle — Light / Dark / System
+    // ============================================================
+    const themeBtn = get('theme-toggle');
+    function getTheme() {
+        return localStorage.getItem('md_theme') || 'system';
+    }
+    function applyTheme(theme) {
+        if (theme === 'light' || theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', theme);
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const effective = theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme;
+        const icon = theme === 'system' ? '🌓' : (effective === 'dark' ? '🌙' : '☀️');
+        if (themeBtn) {
+            themeBtn.querySelector('.theme-icon').textContent = icon;
+            const label = theme === 'system' ? 'System' : (effective === 'dark' ? 'Dark' : 'Light');
+            themeBtn.title = 'Theme: ' + label + ' (click to cycle, Ctrl+Shift+L)';
+            themeBtn.setAttribute('aria-label', 'Theme: ' + label);
+        }
+    }
+    function cycleTheme() {
+        const order = ['light', 'dark', 'system'];
+        const next = order[(order.indexOf(getTheme()) + 1) % order.length];
+        if (next === 'system') localStorage.removeItem('md_theme');
+        else localStorage.setItem('md_theme', next);
+        applyTheme(next);
+        toast('Theme: ' + next[0].toUpperCase() + next.slice(1), 'info');
+        if (editor) setTimeout(() => editor.refresh(), 50);
+    }
+    applyTheme(getTheme());
+    if (themeBtn) themeBtn.addEventListener('click', cycleTheme);
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (getTheme() === 'system') applyTheme('system');
+    });
+
+    // ============================================================
+    // 11. Editor status footer — word/char/line + save indicator
+    // ============================================================
+    const statWords = get('stat-words');
+    const statChars = get('stat-chars');
+    const statLines = get('stat-lines');
+    const saveIndicator = get('save-indicator');
+    let saveTimer = null;
+
+    function updateStats() {
+        const v = editor.getValue();
+        if (statChars) statChars.textContent = v.length;
+        if (statLines) statLines.textContent = v ? v.split('\n').length : 0;
+        if (statWords) statWords.textContent = v.trim() ? v.trim().split(/\s+/).length : 0;
+    }
+    function markDirty() {
+        if (!saveIndicator) return;
+        saveIndicator.className = 'save-indicator dirty';
+        saveIndicator.textContent = 'Unsaved';
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+            saveIndicator.className = 'save-indicator saved';
+            saveIndicator.textContent = 'Saved';
+        }, 600);
+    }
+    editor.on('change', () => { updateStats(); markDirty(); });
+    updateStats();
+    if (saveIndicator) { saveIndicator.className = 'save-indicator saved'; saveIndicator.textContent = 'Saved'; }
+
+    // ============================================================
+    // 12. Drag & drop file load
+    // ============================================================
+    let dragDepth = 0;
+    function isFileDrag(e) {
+        return e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+    }
+    document.addEventListener('dragenter', e => {
+        if (!isFileDrag(e)) return;
+        dragDepth++;
+        document.body.classList.add('is-dragging-file');
+    });
+    document.addEventListener('dragover', e => { if (isFileDrag(e)) e.preventDefault(); });
+    document.addEventListener('dragleave', () => {
+        dragDepth = Math.max(0, dragDepth - 1);
+        if (dragDepth === 0) document.body.classList.remove('is-dragging-file');
+    });
+    document.addEventListener('drop', async e => {
+        if (!isFileDrag(e)) return;
+        e.preventDefault();
+        dragDepth = 0;
+        document.body.classList.remove('is-dragging-file');
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        if (file.type.startsWith('image/')) {
+            // route through existing image upload
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            elements.imageUpload.files = dt.files;
+            elements.imageUpload.dispatchEvent(new Event('change'));
+        } else if (/\.(md|markdown|txt)$/i.test(file.name) || file.type.startsWith('text/')) {
+            const r = new FileReader();
+            r.onload = ev => {
+                editor.setValue(ev.target.result);
+                resetPdfPreview();
+                updatePreview();
+                toast('Loaded ' + file.name, 'success');
+            };
+            r.readAsText(file);
+        } else {
+            toast('Unsupported file type: ' + (file.type || file.name), 'warning');
+        }
+    });
+
+    // ============================================================
+    // 13. Resizable splitters (desktop only)
+    // ============================================================
+    const SPLIT_KEY = 'md_split_widths';
+    const splitState = (() => {
+        try { return JSON.parse(localStorage.getItem(SPLIT_KEY)) || {}; } catch (e) { return {}; }
+    })();
+    function applySplit() {
+        const ed = document.querySelector('.editor-panel');
+        const pv = document.querySelector('.preview-panel');
+        const sb = document.querySelector('.controls-panel');
+        if (splitState['editor-preview'] && ed && pv) {
+            ed.style.flex = '0 0 ' + splitState['editor-preview'].editor + 'px';
+            pv.style.flex = '1';
+        }
+        if (splitState['preview-settings'] && sb) {
+            sb.style.width = splitState['preview-settings'].settings + 'px';
+        }
+    }
+    applySplit();
+
+    document.querySelectorAll('.splitter').forEach(splitter => {
+        splitter.addEventListener('mousedown', e => {
+            if (window.innerWidth <= 900) return;
+            e.preventDefault();
+            const which = splitter.dataset.split;
+            const container = splitter.parentElement;
+            const containerRect = container.getBoundingClientRect();
+            const editorEl = document.querySelector('.editor-panel');
+            const previewEl = document.querySelector('.preview-panel');
+            const settingsEl = document.querySelector('.controls-panel');
+            splitter.classList.add('dragging');
+            document.body.classList.add('is-resizing');
+
+            const onMove = (ev) => {
+                if (which === 'editor-preview') {
+                    let w = ev.clientX - editorEl.getBoundingClientRect().left;
+                    w = Math.max(240, Math.min(w, containerRect.width - 320 - settingsEl.offsetWidth));
+                    editorEl.style.flex = '0 0 ' + w + 'px';
+                    previewEl.style.flex = '1';
+                    splitState['editor-preview'] = { editor: w };
+                } else if (which === 'preview-settings') {
+                    let w = containerRect.right - ev.clientX;
+                    w = Math.max(240, Math.min(w, 560));
+                    settingsEl.style.width = w + 'px';
+                    splitState['preview-settings'] = { settings: w };
+                }
+            };
+            const onUp = () => {
+                splitter.classList.remove('dragging');
+                document.body.classList.remove('is-resizing');
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                try { localStorage.setItem(SPLIT_KEY, JSON.stringify(splitState)); } catch (err) {}
+                if (editor) editor.refresh();
+            };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+
+        // double-click to reset
+        splitter.addEventListener('dblclick', () => {
+            const which = splitter.dataset.split;
+            delete splitState[which];
+            const ed = document.querySelector('.editor-panel');
+            const pv = document.querySelector('.preview-panel');
+            const sb = document.querySelector('.controls-panel');
+            if (which === 'editor-preview' && ed && pv) { ed.style.flex = ''; pv.style.flex = ''; }
+            if (which === 'preview-settings' && sb) { sb.style.width = ''; }
+            try { localStorage.setItem(SPLIT_KEY, JSON.stringify(splitState)); } catch (err) {}
+            if (editor) editor.refresh();
+        });
+    });
+
+    // ============================================================
+    // 14. Keyboard shortcuts
+    // ============================================================
+    document.addEventListener('keydown', e => {
+        const mod = e.ctrlKey || e.metaKey;
+        if (!mod) return;
+        // Ctrl/Cmd+S → export markdown
+        if (e.key === 's' && !e.shiftKey) {
+            e.preventDefault();
+            elements.downloadMDBtn.click();
+            toast('Markdown exported', 'success');
+        }
+        // Ctrl/Cmd+Shift+P → download PDF
+        if (e.shiftKey && (e.key === 'P' || e.key === 'p')) {
+            e.preventDefault();
+            elements.convertBtn.click();
+        }
+        // Ctrl/Cmd+Shift+L → cycle theme
+        if (e.shiftKey && (e.key === 'L' || e.key === 'l')) {
+            e.preventDefault();
+            cycleTheme();
+        }
+        // Ctrl/Cmd+/ → toggle live preview
+        if (e.key === '/') {
+            e.preventDefault();
+            elements.autoUpdate.checked = !elements.autoUpdate.checked;
+            elements.autoUpdate.dispatchEvent(new Event('change'));
+            toast('Live preview ' + (elements.autoUpdate.checked ? 'on' : 'off'), 'info');
+        }
+    });
 });
