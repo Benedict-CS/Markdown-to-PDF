@@ -22,16 +22,22 @@ const triggerConversion = async () => {
     isCompiling = true;
     
     console.log(`\n🔄 [${new Date().toLocaleTimeString()}] Change detected. Re-generating PDF...`);
-    
-    await convert(targetFile);
-    
-    isCompiling = false;
+
+    try {
+        const pdf = await convert(filePath);
+        if (pdf && pdf.filename) {
+            console.log(`✅ [${new Date().toLocaleTimeString()}] Wrote ${pdf.filename}`);
+        }
+    } catch (err) {
+        console.error('❌ Conversion error:', err);
+    } finally {
+        isCompiling = false;
+    }
 };
 
-// 監控整個資料夾以確保在 Windows 上的穩定性
+// Watch the whole folder for stability on Windows.
 fs.watch(__dirname, (eventType, filename) => {
-    // 只要是 Markdown, CSS 或 Config 變動，就觸發轉換
-    // 注意：現在支持監控 config.js 了
+    // Trigger a conversion whenever the Markdown, CSS or config file changes.
     const watchedFiles = [targetFile, 'style.css', 'config.js'];
     if (watchedFiles.includes(filename)) {
         if (timeout) clearTimeout(timeout);

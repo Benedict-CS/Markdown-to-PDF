@@ -21,12 +21,21 @@ app.post('/api/upload', (req, res) => {
         return res.status(400).json({ error: 'Missing file data' });
     }
 
+    // Strip any directory components to prevent path traversal
+    // (e.g. "../../server.js" would otherwise escape the images folder).
+    const safeName = path.basename(String(fileName));
+    if (!safeName || safeName.startsWith('.')) {
+        return res.status(400).json({ error: 'Invalid file name' });
+    }
+
     try {
-        const filePath = path.join(__dirname, 'images', fileName);
+        const imagesDir = path.join(__dirname, 'images');
+        fs.mkdirSync(imagesDir, { recursive: true });
+        const filePath = path.join(imagesDir, safeName);
         const buffer = Buffer.from(base64Data, 'base64');
         fs.writeFileSync(filePath, buffer);
-        console.log(`[${new Date().toLocaleTimeString()}] 🖼️ Image uploaded: ${fileName}`);
-        res.json({ success: true, path: `./images/${fileName}` });
+        console.log(`[${new Date().toLocaleTimeString()}] 🖼️ Image uploaded: ${safeName}`);
+        res.json({ success: true, path: `./images/${safeName}` });
     } catch (error) {
         console.error('❌ Upload Error:', error);
         res.status(500).json({ error: 'Failed to save image' });

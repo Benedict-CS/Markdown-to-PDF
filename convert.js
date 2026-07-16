@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const { mdToPdf } = require('md-to-pdf');
 const path = require('path');
 const fs = require('fs');
@@ -8,8 +9,9 @@ const fs = require('fs');
  */
 async function convert(input, options = {}) {
     try {
-        const isFile = input && fs.existsSync(path.resolve(input)) && input.endsWith('.md');
-        const markdownContent = isFile ? fs.readFileSync(path.resolve(input), 'utf8') : input;
+        const isFile = typeof input === 'string' && input.endsWith('.md') && fs.existsSync(path.resolve(input));
+        const sourcePath = isFile ? path.resolve(input) : null;
+        const markdownContent = isFile ? fs.readFileSync(sourcePath, 'utf8') : input;
 
         const cssPath = path.resolve(__dirname, 'style.css');
         const baseCss = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : '';
@@ -83,10 +85,17 @@ async function convert(input, options = {}) {
         }
 
         // 6. Execute
+        // When converting a file (CLI / watch mode) write the PDF next to the
+        // source. For raw content (web server) set dest to null so md-to-pdf
+        // does NOT default to 'stdout' and dump the binary PDF to the terminal;
+        // the caller consumes the returned buffer instead.
+        const dest = sourcePath ? sourcePath.replace(/\.md$/i, '.pdf') : null;
+
         return await mdToPdf(
             { content: markdownContent },
             {
                 basedir: __dirname,
+                dest,
                 css: baseCss + '\n' + dynamicCss + '\n' + (options.customCss || ''),
                 pdf_options: pdfOptions,
                 launch_options: {
@@ -106,6 +115,8 @@ async function convert(input, options = {}) {
 function mergeConfig(target, source) {
     if (!source) return;
     for (const key of Object.keys(source)) {
+        // Guard against prototype pollution via crafted keys in request bodies.
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
         if (source[key] instanceof Object && !Array.isArray(source[key])) {
             if (!target[key]) target[key] = {};
             mergeConfig(target[key], source[key]);
@@ -116,3 +127,23 @@ function mergeConfig(target, source) {
 }
 
 module.exports = { convert };
+
+// CLI entry: `node convert.js [file.md]` or the `mark-pdf` bin.
+if (require.main === module) {
+    const target = process.argv[2] || 'example.md';
+    const filePath = path.resolve(process.cwd(), target);
+
+    if (!fs.existsSync(filePath) || !filePath.endsWith('.md')) {
+        console.error(`Error: Markdown file not found -> ${filePath}`);
+        process.exit(1);
+    }
+
+    convert(filePath).then((pdf) => {
+        if (pdf && pdf.filename) {
+            console.log(`✅ PDF generated: ${pdf.filename}`);
+        } else {
+            console.error('❌ Conversion failed.');
+            process.exit(1);
+        }
+    });
+}
