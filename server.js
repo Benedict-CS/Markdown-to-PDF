@@ -78,8 +78,11 @@ app.post('/api/convert', async (req, res) => {
             throw new Error('Failed to generate PDF content');
         }
     } catch (error) {
+        // Log the full error (incl. stack) server-side, but return only the
+        // message string to the client so the cause is visible without leaking
+        // stack traces.
         console.error('❌ Server Error:', error);
-        res.status(500).json({ error: 'Internal Server Error during conversion' });
+        res.status(500).json({ error: error.message || 'Internal Server Error during conversion' });
     }
 });
 

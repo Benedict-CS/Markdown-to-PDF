@@ -26,8 +26,11 @@
   },
   "type": "commonjs",
   "dependencies": {
+    "@sparticuz/chromium": "^131.0.0",
     "body-parser": "^2.2.2",
     "express": "^5.2.1",
-    "md-to-pdf": "^5.2.5"
+    "marked": "^12.0.0",
+    "md-to-pdf": "^5.2.5",
+    "puppeteer-core": "^23.0.0"
   }
 }

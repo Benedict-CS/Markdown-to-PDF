@@ -119,12 +119,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ markdownContent: md, configOptions: config })
             });
-            if (!res.ok) throw new Error("Server error");
+            if (!res.ok) {
+                // Surface the server-provided cause instead of a generic message.
+                let message = `Server error (${res.status})`;
+                try {
+                    const data = await res.json();
+                    if (data && data.error) message = data.error;
+                } catch (_) { /* response had no JSON body */ }
+                throw new Error(message);
+            }
             return await res.blob();
-        } catch (e) { 
+        } catch (e) {
             console.error("PDF Request failed:", e);
-            return null; 
-        } finally { 
+            toast('PDF generation failed: ' + e.message, 'error');
+            return null;
+        } finally {
             elements.loadingSpinner.style.display = 'none'; 
         }
     }

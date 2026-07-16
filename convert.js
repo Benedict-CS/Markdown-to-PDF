@@ -28,7 +28,10 @@ async function convert(input, options = {}) {
             try {
                 delete require.cache[require.resolve(configJsPath)];
                 mergeConfig(config, require(configJsPath));
-            } catch (e) {}
+            } catch (e) {
+                // Keep going with defaults, but don't hide a broken user config.
+                console.warn('⚠️  Ignoring config.js (failed to load):', e.message);
+            }
         }
 
         // 3. Merge incoming options
@@ -104,8 +107,10 @@ async function convert(input, options = {}) {
             }
         );
     } catch (error) {
+        // Log for the server operator, then rethrow so the caller receives the
+        // real cause instead of a silent null.
         console.error('❌ md-to-pdf Backend Error:', error);
-        return null;
+        throw error;
     }
 }
 
@@ -145,5 +150,8 @@ if (require.main === module) {
             console.error('❌ Conversion failed.');
             process.exit(1);
         }
+    }).catch((error) => {
+        console.error('❌ Conversion failed:', error.message);
+        process.exit(1);
     });
 }
